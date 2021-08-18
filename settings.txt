@@ -1,0 +1,2 @@
+ExcelPath=C:\ResourceReviews\
+PowershellEmailScript=C:\ResourceReviews\ps\SendEmail.ps1
