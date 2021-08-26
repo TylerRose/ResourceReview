@@ -63,7 +63,7 @@ public class CellWriter {
         if (cell == null) {
             throw new IllegalArgumentException();
         }
-        cell.setCellValue(newText);
+        cell.setCellValue(newText.trim());
         return cell;
     }
 
@@ -72,7 +72,8 @@ public class CellWriter {
         if (cell == null) {
             throw new IllegalArgumentException();
         }
-        setCellText(cell, getCellValue(cell) + addedText);
+        String appended = getCellValue(cell) + addedText;
+        setCellText(cell, appended.trim());
         return cell;
     }
 
