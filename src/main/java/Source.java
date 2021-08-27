@@ -5,23 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.poi.ss.usermodel.*;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
+ * Main file of RR that handles the program flow, major steps, and error
+ * handling
  *
- * @author trose
+ * @author Tyler Rose
  */
 public class Source {
 
@@ -35,20 +29,6 @@ public class Source {
     private static int year;
     private static Thread workbookSetup;
 
-    private static void delayDot(int dots) {
-        System.out.println("\r");
-        for (int i = 0; i < dots; i++) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                //Just dot 
-            }
-
-            //System.out.print('.');
-            //System.out.flush();
-        }
-        //System.out.println("\r\n");
-    }
     ArrayList<String> doneIDs = new ArrayList<>();
 
     private static String fileLocation;// = "C:\\Excel\\Test Excel Sheet-2021.xlsx";
@@ -56,8 +36,15 @@ public class Source {
     //private static Workbook workbook;
     private static final Scanner in = new Scanner(System.in);
 
+    /**
+     * Main functions, handles the execution order of the RR automation. No
+     * arguments runs in test mode. Set test mode with test=true or test=false.
+     * Add "errors" after the test mode to run only errors.
+     *
+     * @param args command line arguments to enable test mode or run only errors
+     */
     public static void main(String[] args) {
-
+        //handle the arguments and enable test/error modes
         boolean errorsOnly = false;
         if (args.length == 0) {
             //set default argument values
@@ -69,11 +56,11 @@ public class Source {
                     SendEmail.testMode = true;
                     break;
                 case "test=false":
+                    //if test mode is off, run a confirmation input step
                     SendEmail.testMode = false;
-                    System.out.println("Running and sending to RR contacts. Type 'yes' to confirm production run: ");
-                    while (!in.nextLine().toLowerCase().contains("yes")) {
+                    do {
                         System.out.print("Running and sending to RR contacts. Type 'yes' to confirm production run: ");
-                    }
+                    } while (!in.nextLine().toLowerCase().contains("yes"));
                     System.out.println("");
                     break;
                 default:
@@ -89,18 +76,16 @@ public class Source {
             }
         }
 
-        //Load settings
+        //Initialize vars and files
         try {
-            loadSettings();
+            initialization();
         } catch (RuntimeException e) {
             System.out.println("ERROR: " + e.getMessage());
         }
-//        excelPath = resourceReviewsPath + "Excel\\" + 2021 + "\\";
-//        File docPath = new File(excelPath);
-//        fileLocation = excelPath + "\\" + docPath.list()[0];
-//        Spreadsheet mysheet = new Spreadsheet(fileLocation);
+
+        //Get input for month and year
         int sheetNo = getInput();
-        //Give the month to the powershell file to use for confirDmation email
+        //Give the month to the powershell file to use for confirmation email
         String[] monthNames = {"January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
         try {
             new File(powershellScript + "\\lastRun.txt").createNewFile();
@@ -111,11 +96,12 @@ public class Source {
                 out.write("Script run on " + monthNames[sheetNo] + ", " + year + " at " + formatter.format(date) + ".");
             }
         } catch (IOException ex) {
-            System.out.println("ERROR: Missing permissions to write to file! (Path: " + powershellScript + "\\files\\" + monthNames[sheetNo] + ")");
+            System.out.println("ERROR: Missing permissions to write to file! (Path: " + powershellScript + "\\lastRun.txt)");
         }
-        System.out.print("\nProcessing");
-        delayDot(3);
 
+        //Begin processing the spreadsheet
+        System.out.print("\nProcessing");
+        delay(3);
         //Define the Spreadsheet and parse location and check it exits
         File docPath = new File(excelPath);
         if (docPath.list().length == 0) {
@@ -148,11 +134,11 @@ public class Source {
                 System.out.println("ERROR: The spreadsheet could not be set up, the file was inaccessable.");
             }
         }
-
         System.out.println("Finished processing");
 
+        //Send emails out to non-errored entries
         System.out.print("\nSending emails");
-        delayDot(3);
+        delay(3);
         try {
             sendEmails();
         } catch (IOException ex) {
@@ -161,13 +147,15 @@ public class Source {
 
         ErrorTracker errors = reportErrors();
 
+        //write the dates into the contact column
         if (sheet != null) {
             System.out.print("\nUpdating dates for successfull entries");
-            delayDot(3);
+            delay(3);
             try {
                 updateDates(sheet, errors);
             } catch (RuntimeException ex) {
                 System.out.println("A runtime exception occured:\n" + ex.getMessage());
+                System.out.println("Please contact support with this message and the following information:");
                 ex.printStackTrace();
             }
             try {
@@ -177,6 +165,7 @@ public class Source {
                 System.out.println("ERROR: Unable to save and close the sheet. Dates have not been updated. Make sure the sheet is closed before running.");
             }
 
+            //Done :)
             System.out.println("\n\n"
                     + "  ____      U  ___ u  _   _   U _____ u \n"
                     + " |  _\"\\      \\/\"_ \\/ | \\ |\"|  \\| ___\"|/ \n"
@@ -193,68 +182,98 @@ public class Source {
         }
     }
 
-    private static Sheet RunResourceReview(int sheetNo) throws IllegalArgumentException, FileNotFoundException, IllegalArgumentException {
+    /**
+     * This function checks every line in the sheet and for each unique email
+     * address it finds it calls ParseEmailFormat's function that will combine
+     * that contact's information into one singular email.
+     *
+     * @param sheetNo the sheet number to run
+     * @return the sheet that was run
+     * @throws IllegalArgumentException Invalid tab position of the given tab to
+     * run
+     * @throws FileNotFoundException ParseEmailFormat couldn't open the file at
+     * the given path
+     */
+    private static Sheet RunResourceReview(int sheetNo) throws IllegalArgumentException, FileNotFoundException {
         ParseEmailFormat parse = new ParseEmailFormat(mySpreadSheet.getSheet(sheetNo), resourceReviewsPath);
         //Parse through the email addresses, combining all agencies per address before moving to the next
         Sheet sheet = mySpreadSheet.getSheet(sheetNo);
-        //Make sure tabs are in the correct order before running the sheet
+        //Ensure tabs are in the correct order before running the sheet
         CheckTabOrder(sheet, sheetNo);
         String prevEmail = "----";
         String currEmail = "";
         ArrayList<String> done = new ArrayList<>();
+        ///set an absolute maximum of 10k lines that will be processed
         int maxRow = 10000;
         int curRow = 0;
+        //For each row in the sheet, get the unprocessed, completed email addresses and combine their information
         for (Row row : sheet) {
-            // System.out.println("Row: " + row.getRowNum());
             try {
+                //Check that the current row has an Agency ID and isn't complete
                 Cell cell = mySpreadSheet.getCellByRowAndTitle(row, "Agency ID");
                 Cell completed = mySpreadSheet.getCellByRowAndTitle(row, "Complete");
                 if (cell != null && mySpreadSheet.getCellValue(completed).equals("")) {
-//                    System.out.println("Completed: " + mySpreadSheet.getCellValue(completed));
-//                    System.out.println("Prev: " + prevEmail);
-//                    System.out.println("Curr: " + currEmail);
-//                    System.out.println("Done: " + done.toString());
-//                    System.out.println("\n\n");
                     currEmail = (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Administrative Contact Email"))).toLowerCase();
+                    //If it is a new unique email, compile all this emails data
                     if (currEmail.length() > 3 && !currEmail.equals(prevEmail) && !done.contains(currEmail)) {
                         done.add(currEmail);
+                        //Get all other lines with the current email address
                         parse.parseRowsByEmail(mySpreadSheet.getSheet(sheetNo), currEmail, specialistInitials);
                         prevEmail = currEmail;
                     }
                 }
             } catch (IOException | RuntimeException e) {
-                //System.out.println(e);
-                //System.out.println(Arrays.toString(e.getStackTrace()));
             }
             curRow++;
+            //Catch a runaway loop that looks through too many lines
             if (curRow >= maxRow) {
-                System.out.println("Hit 10k rows...");
                 return sheet;
             }
         }
         return sheet;
     }
 
+    /**
+     * Check that the number in the tab name matches the actual tab number of
+     * the worksheet. This protects against the requested month not matching the
+     * tab number provided by the worksheet and prevents the wrong month from
+     * being run accidentally. Throws an exception if the tabs are out of order.
+     *
+     * @param sheet the sheet that will be run
+     * @param sheetNo the month number requested
+     * @throws IllegalArgumentException the provided requested sheet number does
+     * not match the name of the tab on the sheet.
+     */
     private static void CheckTabOrder(Sheet sheet, int sheetNo) throws IllegalArgumentException {
+        //clean up the tab name and set the expected name string
         String fullTabName = sheet.getSheetName().toLowerCase().replace(" ", "").replace("_", "").replace("-", "");
         String lookingFor = "tab" + (sheetNo + 1);
         char nextChar;
+        //Check for cases like looking for tab1 but the tab is tab10, should not run
         if (fullTabName.length() > fullTabName.indexOf(lookingFor) + lookingFor.length() + 1) {
             nextChar = fullTabName.charAt(fullTabName.indexOf(lookingFor) + lookingFor.length() + 1);
         } else {
             nextChar = 'a';
         }
+        //throw exception if the tab name matches the expected name
         if (!(fullTabName).contains(lookingFor) || Character.isDigit(nextChar)) {
             System.out.println("Tabs our of order!");
             throw new IllegalArgumentException("Tabs out of order!");
         }
     }
 
+    /**
+     * Get year, month, and specialist information to know what is being run and
+     * where it is located
+     *
+     * @return the sheet number that was provided
+     */
     private static int getInput() {
         int sheetNo;
         System.out.println("Please enter the year: ");
         year = in.nextInt();
         excelPath = resourceReviewsPath + "Excel\\" + year + "\\";
+        //set up the sheet in a separate thread to load data while getting input
         workbookSetup = new Thread() {
             public void run() {
                 try {
@@ -268,6 +287,7 @@ public class Source {
 
         //Create the path if it doesn't exist
         new File(excelPath).mkdirs();
+        //Get month and specialist details
         System.out.println("Please enter the Month number: ");
         sheetNo = in.nextInt() - 1;
         System.out.print("Please select the specialist:");
@@ -282,6 +302,12 @@ public class Source {
         return sheetNo;
     }
 
+    /**
+     * Send any errored items to the error tracker to record and display which
+     * entries had errors.
+     *
+     * @return the error tracker instance
+     */
     private static ErrorTracker reportErrors() {
         ErrorTracker errors = ErrorTracker.getInstance();
         System.out.println("Finished sending with " + errors.getNumOfErrors() + " errors.");
@@ -293,12 +319,20 @@ public class Source {
         return errors;
     }
 
+    /**
+     * Update the Dates Contacted field of any lines that ran through the script
+     *
+     * @param sheet the sheet that was run
+     * @param errors the error tracker instance holding which entries had errors
+     * @throws RuntimeException
+     */
     private static void updateDates(Sheet sheet, ErrorTracker errors) throws RuntimeException {
         Cell currCell;
         String currCellText;
         int columnNum = mySpreadSheet.getCellByRowAndTitle(sheet.getRow(0), "Dates Contacted").getColumnIndex();
         int maxRow = 10000;
         int curRow = 0;
+        //go through all rows with Listing IDs
         for (Row r : mySpreadSheet.getRowsByColumnName(sheet, "Listing ID")) {
             try {
                 currCell = mySpreadSheet.getCellByRowAndTitle(r, "Dates Contacted");
@@ -336,45 +370,27 @@ public class Source {
             }
         }
     }
-    //    //Old Send emails using the output folder with individual files
-    //    private static void sendEmails() throws IOException {
-    //        File scriptLoc = new File(resourceReviewsPath + "ps\\");
-    //        File outputFolder = new File(resourceReviewsPath + "Outputs");
-    //        //System.out.println(outputFolder.listFiles());
-    //        if (outputFolder.listFiles().length > 0) {
-    //            File current;
-    //            Scanner in;
-    //            String to;
-    //            String email;
-    //            String subject;
-    //            for (int k = 0; k < outputFolder.listFiles().length - 1; k++) {
-    //                email = "";
-    //                current = outputFolder.listFiles()[k];
-    //                in = new Scanner(new FileInputStream(new File(current.getAbsolutePath())));
-    //                to = in.nextLine().substring("To- ".length());
-    //                subject = in.nextLine().substring("Subject- ".length());
-    //                while (in.hasNextLine()) {
-    //                    email += in.nextLine();
-    //                }
-    //                SendEmail.addEmail(scriptLoc, to, "resourcereviews@homage.org", subject, email);
-    //            }
-    //            SendEmail.sendAll();
-    //        }
-    //    }
-    //New sendEmails using the email manager
 
+    /**
+     * Call the function to add run entries to the email list and run the emails
+     *
+     * @throws IOException files couldn't be created for this email
+     */
     private static void sendEmails() throws IOException {
         File scriptLoc = new File(resourceReviewsPath + "ps\\");
         EmailManager eManager = EmailManager.getInstance();
         ArrayList<Email> emailList = eManager.getEmails();
         for (Email e : emailList) {
-            SendEmail.addEmail(scriptLoc, "resourcereviews@homage.org", e);
+            SendEmail.addEmail(scriptLoc, e);
         }
-        SendEmail.sendAll();
+        //Not sending via Java
+        //SendEmail.sendAll();
     }
 
-    //Loads the settings from the setting file
-    private static void loadSettings() {
+    /**
+     * Initialize variables and files needed by the program
+     */
+    private static void initialization() {
         FileInputStream specialists = null;
         specialistList = new ArrayList<>();
         resourceReviewsPath = "C:\\ResourceReviewsAutomation\\";
@@ -399,7 +415,23 @@ public class Source {
         new File(powershellScript).mkdirs();
     }
 
+    /**
+     * Run the review on the items with errors only
+     */
     private static void RunErrorsOnly() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /**
+     * Add a delay to the code by a number of seconds
+     *
+     * @param sec the seconds to wait
+     */
+    private static void delay(int sec) {
+        System.out.println("\r");
+        try {
+            Thread.sleep(1000 * sec);
+        } catch (InterruptedException ex) {
+        }
     }
 }

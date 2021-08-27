@@ -1,0 +1,29 @@
+cmd.exe
+/X
+/C
+""C:\Program Files\Java\jdk1.8.0_261\jre\..\bin\javadoc.exe" @options @argfile"
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\allclasses-frame.html = 1630007818034
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\allclasses-noframe.html = 1630007818050
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\argfile = 1630007816953
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\CellWriter.html = 1630007817784
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\constant-values.html = 1630007817940
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\deprecated-list.html = 1630007818018
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\Email.html = 1630007817800
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\EmailManager.html = 1630007817815
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\ErrorTracker.html = 1630007817831
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\help-doc.html = 1630007818065
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\index-all.html = 1630007818003
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\index.html = 1630007818050
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\options = 1630007816953
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\overview-tree.html = 1630007817987
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\package-frame.html = 1630007817909
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\package-list = 1630007817909
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\package-summary.html = 1630007817925
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\package-tree.html = 1630007817940
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\package-use.html = 1630007817987
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\ParseEmailFormat.html = 1630007817862
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\script.js = 1630007818065
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\SendEmail.html = 1630007817862
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\Source.html = 1630007817878
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\Spreadsheet.html = 1630007817909
+C:\Users\trose\Documents\NetBeansProjects\ResourceReview\target\site\apidocs\stylesheet.css = 1629996154706

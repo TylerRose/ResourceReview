@@ -1,45 +1,54 @@
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
+ * Parse through the email format files to create the HTML formatted emails from
+ * the columns requested for each admin contact.
  *
- * @author trose
+ * @author Tyler Rose
  */
 public class ParseEmailFormat {
 
     private final Spreadsheet spdsht;
-//    private final Sheet sheet;
-//    private final String resourceReviewPath;
     private final String templateLoc;
     private Scanner emailHeadTemplate;
     private Scanner emailBodyTemplate;
     private Scanner emailFooterTemplate;
     private Scanner emailSignatureTemplate = null;
-    //private BufferedWriter out;
     private final ErrorTracker errors;
 
-    public ParseEmailFormat(Sheet sheet, String path) throws FileNotFoundException {
-        //this.sheet = sheet;
-        //resourceReviewPath = path;
+    /**
+     * Constructor initializes the file path and instances for the spreadsheet
+     * and error tracker classes
+     *
+     * @param sheet the sheet with the data
+     * @param path the path to the EmailFormat folder
+     */
+    public ParseEmailFormat(Sheet sheet, String path) {
         templateLoc = path + "\\EmailFormat\\Email";
         errors = ErrorTracker.getInstance();
         spdsht = Spreadsheet.getInstance();
     }
 
+    /**
+     *
+     * Combine all data for the given email address and put it's Email object
+     * together. Searches through the sheet according to the address and uses
+     * the email format templates to create the subject and body of the email.
+     *
+     * @param sheet the sheet to use
+     * @param email the email address to send an email to
+     * @param specialistInitials the initials of the specialist for the
+     * signature file to use
+     * @throws IOException One of the email format files couldn't be accessed
+     */
     public void parseRowsByEmail(Sheet sheet, String email, String specialistInitials) throws IOException {
         //A row to use for information on the contacts
         Row currRow = spdsht.getRowsByAdminContactEmail(sheet, email).get(0);
@@ -54,8 +63,8 @@ public class ParseEmailFormat {
         } else {
             emailHeadTemplate = new Scanner(new FileInputStream(new File(templateLoc + "HeadConsec.txt")));
         }
-
-        headerText = ResolveFields(emailHeadTemplate, headerText, currRow);
+        //Parse the header of the email
+        headerText = ResolveFields(emailHeadTemplate, headerText, currRow, "[", "]");
 
         //Loop through all their rows to append to the body of the email
         ArrayList<Row> rowLoop = spdsht.getRowsByAdminContactEmail(sheet, email);
@@ -63,49 +72,54 @@ public class ParseEmailFormat {
             if (spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, "Complete")).equals("")) {
                 emailBodyTemplate = new Scanner(new FileInputStream(new File(templateLoc + "Body.txt")));
                 try {
-                    //System.out.println(bodyText);
-                    //System.out.println("Body x" + rowLoop.size());
-                    bodyText = ResolveFields(emailBodyTemplate, bodyText, row);
-                    //System.out.println(bodyText);
-                    ////test set cell stuffs
-                    //System.out.println(spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, "Data Notes")));
-                    //spdsht.appendCellText(spdsht.getCellByRowAndTitle(row, "Dates Contacted"), ", E: " + getDateString());
-                    //getDateString();
-                    //System.out.println(spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, "Data Notes")));
+                    bodyText = ResolveFields(emailBodyTemplate, bodyText, row, "[", "]");
                 } catch (Exception e) {
                     throw e;
                 }
             }
         }
-
+        //Parse the footer of the email
         emailFooterTemplate = new Scanner(new FileInputStream(new File(templateLoc + "Footer.txt")));
         //Write the footer of the email
-        footerText = ResolveFields(emailFooterTemplate, footerText, currRow);
+        footerText = ResolveFields(emailFooterTemplate, footerText, currRow, "[", "]");
 
-        //Write the signature of the email
-        emailSignatureTemplate = new Scanner(new FileInputStream(new File(templateLoc + "Signature" + specialistInitials + ".txt")));
-        signatureText = ResolveFields(emailSignatureTemplate, signatureText, currRow);
+        //Parse the signature of the email
+        try {
+            emailSignatureTemplate = new Scanner(new FileInputStream(new File(templateLoc + "Signature" + specialistInitials + ".txt")));
+        } catch (FileNotFoundException ex) {
+            System.out.println("The signature file for " + specialistInitials + " couldn't be found!");
+            throw ex;
+        }
+        signatureText = ResolveFields(emailSignatureTemplate, signatureText, currRow, "[", "]");
 
         //Put all the pieces together and write output
         writeFile(headerText.append(bodyText).append(footerText).append(signatureText).toString());
     }
 
-    private StringBuilder ResolveFields(Scanner template, StringBuilder text, Row row) {
+    /**
+     * Replace fields set in the email template with the cell values in the
+     * spreadsheet
+     *
+     * @param template the template scanner to use
+     * @param text StringBuilder to add the next line to
+     * @param row the row of the contact's data
+     * @return the StringBuilder with the output text
+     */
+    private StringBuilder ResolveFields(Scanner template, StringBuilder text, Row row, String open, String close) {
         boolean skip = false;
         int start, stop;
         //Loop through every line of the emplate
         while (template.hasNextLine()) {
             text.append(template.nextLine());
             //For each line, loop through every set of brackets
-            while (text.toString().contains("[")) {
-                start = text.indexOf("[");
-                stop = text.indexOf("]");
+            while (text.toString().contains(open)) {
+                start = text.indexOf(open);
+                stop = text.indexOf(close);
                 String replacementText = "";
                 String colTitle = "";
                 //Try to insert the ID's information into the email
                 try {
                     colTitle = text.substring(start + 1, stop);
-                    //System.out.println("Template got column: " + colTitle);
                     replacementText = spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, colTitle));
                     //No error if it was pulling first name, web review.
                     if (replacementText.equals("Administrative Contact First Name")) {
@@ -123,17 +137,12 @@ public class ParseEmailFormat {
                     }
                     //Catch null pointer exception from unknown column name
                 } catch (NullPointerException e) {
-                    //String text2 = e.getMessage();
-                    //String text3 = Arrays.toString(e.getStackTrace());
-                    //System.out.println("\n\n" + text2 + "\n" + text3 + "\n\n");
                     replacementText = "\tERROR - INVALID COLUMN NAME - {" + colTitle + "}\t";
                     String id = spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, "Listing ID"));
                     errors.addError(id.substring(0, id.indexOf(".")), "Invalid Column Name - {" + colTitle + "}");
                 }
-                //String end = text.substring(stop + 1);
                 text.replace(start, stop + 1, replacementText);// = beginning + middle + end;
             }
-            //System.out.println("***");
             text.append("\n");
         }
         if (skip) {
@@ -142,39 +151,10 @@ public class ParseEmailFormat {
         return text;
     }
 
-//    public void parseRow(Spreadsheet spdsht, Row row) throws IOException {
-//        String text = "";
-//        while (emailTemplate.hasNextLine()) {
-//            text += emailTemplate.nextLine();
-//            if (text.contains("[")) {
-//                int start = text.indexOf("[");
-//                int stop = text.indexOf("]");
-//                String beginning = text.substring(0, start);
-//                String middle;
-//                try {
-//                    middle = spdsht.getCellByRowAndTitle(row, text.substring(start + 1, stop)).toString();
-//                } catch (Exception e) {
-//                    middle = "\tERROR - BAD FIELD\t";
-//                }
-//                String end = text.substring(stop + 1);
-//                text = beginning + middle + end;
-//            }
-//            text += "\n";
-//        }
-//        writeFile(text);
-//    }
-    /*
-    *Old write file, saves in output as to, subject, body files
-     */
-//    private void writeFile(String text) throws IOException {
-//        String outFilePath = (resourceReviewPath + "\\Outputs\\").concat(text.substring(0, text.indexOf("Subject") - 1)).concat(".txt");
-//        File outFile = new File(outFilePath);
-//        out = new BufferedWriter(new FileWriter(outFile));
-//        out.write(text);
-//        out.close();
-//    }
-    /*
-    * new saving emails, saves as email object with the email manager class
+    /**
+     * Save emails to an email object
+     *
+     * @param text The name of the file to write
      */
     private void writeFile(String text) {
         String[] textArr = text.split("\n");
@@ -185,10 +165,6 @@ public class ParseEmailFormat {
         for (int i = 2; i < textArr.length; i++) {
             body.append(textArr[i]).append("\n");
         }
-
-        //String to = text.substring(text.toLowerCase().indexOf("to-") + "to-".length(), text.toLowerCase().indexOf("subject")).trim();
-        //String subject = text.substring(text.toLowerCase().indexOf("subject-") + "subject-".length(), text.toLowerCase().indexOf("<!doctype html>")).trim();
-        // String body = text.substring(text.toLowerCase().indexOf("<!doctype html>"));
         EmailManager.getInstance().addEmail(to, subject, body.toString());
     }
 }
