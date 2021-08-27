@@ -203,7 +203,7 @@ public class Source {
         String prevEmail = "----";
         String currEmail = "";
         ArrayList<String> done = new ArrayList<>();
-        ///set an absolute maximum of 10k lines that will be processed
+        //set an absolute maximum of 10k lines that will be processed
         int maxRow = 10000;
         int curRow = 0;
         //For each row in the sheet, get the unprocessed, completed email addresses and combine their information
