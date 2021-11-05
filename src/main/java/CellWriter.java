@@ -3,6 +3,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
@@ -46,7 +47,9 @@ public class CellWriter {
      */
     public void closeWriter() throws IOException {
         isSetUp();
-        try (FileOutputStream out = new FileOutputStream(fileLocation, false)) {
+        //initialize out as the file output
+        try (FileOutputStream out = new FileOutputStream(fileLocation, false)) {            
+            //write and close the book through file stream out
             book.write(out);
         }
         writer = null;
@@ -72,7 +75,7 @@ public class CellWriter {
      */
     private void isSetUp() {
         if (!isSetUp) {
-            throw new RuntimeException("The Cell Writer couldn't wasn't set up");
+            throw new RuntimeException("The Cell Writer wasn't set up");
         }
     }
 
@@ -129,5 +132,16 @@ public class CellWriter {
         }
         return value;
     }
-
+    
+    /**
+     * Evaluate the formula in a cell. The formula will remain in the cell and
+     * Excel will display the resulting value.
+     * 
+     * @param cell the cell containing the formula to evaluate
+     */
+    public void refreshCell(Cell cell){
+        isSetUp();
+        FormulaEvaluator evaluator = book.getCreationHelper().createFormulaEvaluator();
+        evaluator.evaluateFormulaCell(cell);
+    }
 }

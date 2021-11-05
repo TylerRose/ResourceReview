@@ -126,33 +126,36 @@ public class Source {
             //End program when errors are finished
         } else {
             try {
-                //Beginnin running normal execution
+                //Beginning running normal execution
                 sheet = RunResourceReview(sheetNo);
             } catch (IllegalArgumentException ex) {
                 System.out.println("ERROR: The tabs were out of order! Please re-order the tabs and run again.");
             } catch (FileNotFoundException ex) {
                 System.out.println("ERROR: The spreadsheet could not be set up, the file was inaccessable.");
+            } catch (RuntimeException ex) {
+                System.out.println("ERROR: " + ex.getMessage());
             }
         }
         System.out.println("Finished processing");
 
-        //Send emails out to non-errored entries
-        System.out.print("\nSending emails");
-        delay(3);
-        try {
-            sendEmails();
-        } catch (IOException ex) {
-            System.out.println("ERROR: Unable to start powershell processes. Please run manually in the PS folder.");
-        }
-
-        ErrorTracker errors = reportErrors();
-
-        //write the dates into the contact column
         if (sheet != null) {
+            //Generate emails for non-errored entries to be sent by powershell
+            System.out.print("\nGenerating emails");
+            delay(3);
+            try {
+                sendEmails();
+            } catch (IOException ex) {
+                System.out.println("ERROR: Unable to start powershell processes. Please run manually in the PS folder.");
+            }
+
+            ErrorTracker errors = reportErrors();
+
+            //write the dates into the contact column
             System.out.print("\nUpdating dates for successfull entries");
             delay(3);
             try {
                 updateDates(sheet, errors);
+                updateFormulas(sheet);
             } catch (RuntimeException ex) {
                 System.out.println("A runtime exception occured:\n" + ex.getMessage());
                 System.out.println("Please contact support with this message and the following information:");
@@ -177,8 +180,22 @@ public class Source {
                     + "                                        \n"
                     + "                                        \n");
         } else {
-            System.out.println("The sheet to run wasn't identified. Verify all tab names and file locations.");
+            System.out.println("The sheet to run wasn't identified or another error has occured. Please read the information above.");
             System.out.println("Nothing has been run.");
+        }
+    }
+
+    /**
+     * Update formulas to show the evaluated value
+     *
+     * @param sheet the sheet number being run
+     * @throws NullPointerException A cell didn't exist
+     */
+    private static void updateFormulas(Sheet sheet) throws NullPointerException {
+        for (Row row : sheet) {
+            writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Contact No"));
+            writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Next Email Ordinal"));
+            writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Latest Contact"));
         }
     }
 
@@ -194,12 +211,17 @@ public class Source {
      * @throws FileNotFoundException ParseEmailFormat couldn't open the file at
      * the given path
      */
-    private static Sheet RunResourceReview(int sheetNo) throws IllegalArgumentException, FileNotFoundException {
+    private static Sheet RunResourceReview(int sheetNo) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
         ParseEmailFormat parse = new ParseEmailFormat(mySpreadSheet.getSheet(sheetNo), resourceReviewsPath);
         //Parse through the email addresses, combining all agencies per address before moving to the next
         Sheet sheet = mySpreadSheet.getSheet(sheetNo);
         //Ensure tabs are in the correct order before running the sheet
         CheckTabOrder(sheet, sheetNo);
+        //Ensure the formulas for each column are accurate
+        CheckFormulaIntegrity(sheet);
+        //Ensure the listing name matches the listing text for the URL hyperlink
+        //CheckListingNameIntegrity(sheet);
+
         String prevEmail = "----";
         String currEmail = "";
         ArrayList<String> done = new ArrayList<>();
@@ -263,6 +285,40 @@ public class Source {
     }
 
     /**
+     * Set the formulas in the formula cells to ensure they are correct
+     *
+     * @param sheet the sheet that will be run
+     */
+    private static void CheckFormulaIntegrity(Sheet sheet) {
+        //Define what the formulas should be and set them in the sheet
+        for (Row row : sheet) {
+            if (row.getRowNum() == 0) {
+                continue;
+            }
+            String rowNum = row.getRowNum() + "";
+            String contactNoFormula = "=IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\":\",\"\"))),0)";
+            String nextEmailOrdinalFormula = "=IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\"E\",\"\"))),0)+1 &IF(MOD(ABS(IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\"E\",\"\"))),0)),100)+1>=4,\"th\",CHOOSE(MOD(ABS(IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\"E\",\"\"))),0)+1),10)+1,\"th\",\"st\",\"nd\",\"rd\"))";
+            String lastContactFormula = "=IFERROR(RIGHT(W" + rowNum + ",LEN(W" + rowNum + ")-1-FIND(\"@\",SUBSTITUTE(W" + rowNum + ",\",\",\"@\",LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\",\",\"\"))),1)),W" + rowNum + ")";
+            writer.setCellText(mySpreadSheet.getCellByRowAndTitle(row, "Contact No"), contactNoFormula);
+            writer.setCellText(mySpreadSheet.getCellByRowAndTitle(row, "Next Email Ordinal"), nextEmailOrdinalFormula);
+            writer.setCellText(mySpreadSheet.getCellByRowAndTitle(row, "Latest Contact"), lastContactFormula);
+        }
+        updateFormulas(sheet);
+    }
+
+    private static void CheckListingNameIntegrity(Sheet sheet) throws RuntimeException {
+        for (Row row : sheet) {
+            if (row.getRowNum() == 0) {
+                continue;
+            }
+            if (!mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")).equals(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Consumer URL Text")))) {
+                throw new RuntimeException("There was a listing where the Listing Name doesn't match the URL Text! - Listing: " + mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")));
+            }
+
+        }
+    }
+
+    /**
      * Get year, month, and specialist information to know what is being run and
      * where it is located
      *
@@ -275,6 +331,7 @@ public class Source {
         excelPath = resourceReviewsPath + "Excel\\" + year + "\\";
         //set up the sheet in a separate thread to load data while getting input
         workbookSetup = new Thread() {
+            @Override
             public void run() {
                 try {
                     mySpreadSheet.setupWorkbook(excelPath + "\\" + new File(excelPath).list()[0]);
