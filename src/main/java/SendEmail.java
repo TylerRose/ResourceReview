@@ -51,18 +51,18 @@ public class SendEmail {
             //to = "trose@homage.org";
             subject = "Review Test Email - " + subject;
         }
-        writeFile("to" + index, to);
-        writeFile("subject" + index, subject);
-        writeFile("body" + index, message);
+        writeFile(scriptPath + "\\Files\\", "to" + index, to);
+        writeFile(scriptPath + "\\Files\\", "subject" + index, subject);
+        writeFile(scriptPath + "\\Files\\", "body" + index, message);
         String concat = to.concat(subject).concat(message);
         //Put any errors in a different folder
         if (concat.contains("ERROR") || concat.contains("null")) {
             try {
-                p = (new ProcessBuilder("cmd.exe", "/c", "move /Y C:\\ResourceReviews\\ps\\Files\\to" + index + ".txt " + "C:\\ResourceReviews\\Errors\\to" + error + ".txt")).start();
+                p = (new ProcessBuilder("cmd.exe", "/c", "move /Y " + scriptPath + "\\Files\\to" + index + ".txt " + scriptPath + "\\..\\Errors\\to" + error + ".txt")).start();
                 p.waitFor();
-                p = (new ProcessBuilder("cmd.exe", "/c", "move /Y C:\\ResourceReviews\\ps\\Files\\subject" + index + ".txt " + "C:\\ResourceReviews\\Errors\\subject" + error + ".txt")).start();
+                p = (new ProcessBuilder("cmd.exe", "/c", "move /Y " + scriptPath + "\\ps\\Files\\subject" + index + ".txt " + scriptPath + "\\..\\Errors\\subject" + error + ".txt")).start();
                 p.waitFor();
-                p = (new ProcessBuilder("cmd.exe", "/c", "move /Y C:\\ResourceReviews\\ps\\Files\\body" + index + ".txt " + "C:\\ResourceReviews\\Errors\\body" + error + ".txt")).start();
+                p = (new ProcessBuilder("cmd.exe", "/c", "move /Y " + scriptPath + "\\ps\\Files\\body" + index + ".txt " + scriptPath + "\\..\\Errors\\body" + error + ".txt")).start();
                 p.waitFor();
                 error++;
             } catch (InterruptedException ex) {
@@ -71,6 +71,12 @@ public class SendEmail {
         } else {
             index++;
         }
+        //Write an error list file to the error folder
+        String errorList = "";
+        for (String id : ErrorTracker.getInstance().getList()) {
+            errorList += id + "\n";
+        }
+        writeFile(scriptPath + "\\..\\Errors", "errorList.txt", errorList);
     }
 
     /**
@@ -91,8 +97,8 @@ public class SendEmail {
      * @param file the file name to write to
      * @param text the text to write
      */
-    private static void writeFile(String file, String text) {
-        String outFilePath = "C:\\ResourceReviewsAutomation\\ps\\Files\\" + file + ".txt";
+    private static void writeFile(String outFilePath, String file, String text) {
+        outFilePath = outFilePath + file + ".txt";
         File outFile = new File(outFilePath);
         try {
             new File(outFilePath).createNewFile();

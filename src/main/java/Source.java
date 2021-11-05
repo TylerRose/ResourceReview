@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.poi.ss.usermodel.*;
 
 /**
@@ -59,7 +61,7 @@ public class Source {
                     //if test mode is off, run a confirmation input step
                     SendEmail.testMode = false;
                     do {
-                        System.out.print("Running and sending to RR contacts. Type 'yes' to confirm production run: ");
+                        System.out.print("Running and sending to RR contacts. **If re-sending errors** the listing IDs will be emailed using the data of the month/year you are about to select.\nType 'yes' to confirm production run: ");
                     } while (!in.nextLine().toLowerCase().contains("yes"));
                     System.out.println("");
                     break;
@@ -118,24 +120,26 @@ public class Source {
             System.out.println("ERROR: The worksheet could not be set up.");
         }
         writer = CellWriter.getInstance();
-
+        ArrayList<Integer> errorsList = null;
         Sheet sheet = null;
         if (errorsOnly) {
-            //Begin re-running only errored emails
-            RunErrorsOnly();
-            //End program when errors are finished
-        } else {
             try {
-                //Beginning running normal execution
-                sheet = RunResourceReview(sheetNo);
-            } catch (IllegalArgumentException ex) {
-                System.out.println("ERROR: The tabs were out of order! Please re-order the tabs and run again.");
-            } catch (FileNotFoundException ex) {
-                System.out.println("ERROR: The spreadsheet could not be set up, the file was inaccessable.");
-            } catch (RuntimeException ex) {
-                System.out.println("ERROR: " + ex.getMessage());
+                //Begin re-running only errored emails by populating the errors list
+                errorsList = RunErrorsOnly();
+            } catch (IOException ex) {
+                System.out.println("ERROR: The error list wasn't able to be read or couldn't be found! Were there any errors to re-run?");
+                return;
             }
         }
+        try {
+            //Beginning running the review. If errors is no longer null, it will run the errors only.
+            sheet = RunResourceReview(sheetNo, errorsList);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("ERROR: The tabs were out of order! Please re-order the tabs and run again.");
+        } catch (FileNotFoundException ex) {
+            System.out.println("ERROR: The spreadsheet could not be set up, the file was inaccessable.");
+        }
+        
         System.out.println("Finished processing");
 
         if (sheet != null) {
@@ -211,7 +215,7 @@ public class Source {
      * @throws FileNotFoundException ParseEmailFormat couldn't open the file at
      * the given path
      */
-    private static Sheet RunResourceReview(int sheetNo) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
+    private static Sheet RunResourceReview(int sheetNo, ArrayList<Integer> errors) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
         ParseEmailFormat parse = new ParseEmailFormat(mySpreadSheet.getSheet(sheetNo), resourceReviewsPath);
         //Parse through the email addresses, combining all agencies per address before moving to the next
         Sheet sheet = mySpreadSheet.getSheet(sheetNo);
@@ -234,7 +238,8 @@ public class Source {
                 //Check that the current row has an Agency ID and isn't complete
                 Cell cell = mySpreadSheet.getCellByRowAndTitle(row, "Agency ID");
                 Cell completed = mySpreadSheet.getCellByRowAndTitle(row, "Complete");
-                if (cell != null && mySpreadSheet.getCellValue(completed).equals("")) {
+                //If the cell isn't null, completed is empty, and no errors to use
+                if (cell != null && mySpreadSheet.getCellValue(completed).equals("") && errors == null) {
                     currEmail = (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Administrative Contact Email"))).toLowerCase();
                     //If it is a new unique email, compile all this emails data
                     if (currEmail.length() > 3 && !currEmail.equals(prevEmail) && !done.contains(currEmail)) {
@@ -242,6 +247,19 @@ public class Source {
                         //Get all other lines with the current email address
                         parse.parseRowsByEmail(mySpreadSheet.getSheet(sheetNo), currEmail, specialistInitials);
                         prevEmail = currEmail;
+                    }
+                    //else if the cell isn't null, completed is empty, and there is an error list to use
+                } else if (cell != null && mySpreadSheet.getCellValue(completed).equals("") && errors != null) {
+                    //Only if the error list contains the row's listing ID is the listing pushed to the parser.
+                    if (errors.contains(Integer.parseInt(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID"))))) {
+                        currEmail = (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Administrative Contact Email"))).toLowerCase();
+                        //If it is a new unique email, compile all this emails data
+                        if (currEmail.length() > 3 && !currEmail.equals(prevEmail) && !done.contains(currEmail)) {
+                            done.add(currEmail);
+                            //Get all other lines with the current email address
+                            parse.parseRowsByEmail(mySpreadSheet.getSheet(sheetNo), currEmail, specialistInitials);
+                            prevEmail = currEmail;
+                        }
                     }
                 }
             } catch (IOException | RuntimeException e) {
@@ -473,10 +491,17 @@ public class Source {
     }
 
     /**
-     * Run the review on the items with errors only
+     * Run the review on the items with errors only by populating the errored ID
+     * list
      */
-    private static void RunErrorsOnly() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private static ArrayList<Integer> RunErrorsOnly() throws IOException {
+        ArrayList<Integer> out = new ArrayList<>();
+        FileInputStream list = new FileInputStream(new File(resourceReviewsPath + "\\Errors\\errorList.txt"));
+        Scanner in = new Scanner(list);
+        while (in.hasNextLine()) {
+            out.add(Integer.parseInt(in.nextLine()));
+        }
+        return out;
     }
 
     /**
