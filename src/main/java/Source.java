@@ -138,8 +138,10 @@ public class Source {
             System.out.println("ERROR: The tabs were out of order! Please re-order the tabs and run again.");
         } catch (FileNotFoundException ex) {
             System.out.println("ERROR: The spreadsheet could not be set up, the file was inaccessable.");
+        } catch (RuntimeException ex){
+            System.out.println("ERROR: " + ex.getMessage());
         }
-        
+
         System.out.println("Finished processing");
 
         if (sheet != null) {
@@ -164,12 +166,14 @@ public class Source {
                 System.out.println("A runtime exception occured:\n" + ex.getMessage());
                 System.out.println("Please contact support with this message and the following information:");
                 ex.printStackTrace();
+                return;
             }
             try {
                 writer.closeWriter();
                 System.out.println("Finished updating dates.");
             } catch (IOException ex) {
                 System.out.println("ERROR: Unable to save and close the sheet. Dates have not been updated. Make sure the sheet is closed before running.");
+                return;
             }
 
             //Done :)
@@ -224,7 +228,7 @@ public class Source {
         //Ensure the formulas for each column are accurate
         CheckFormulaIntegrity(sheet);
         //Ensure the listing name matches the listing text for the URL hyperlink
-        //CheckListingNameIntegrity(sheet);
+        CheckListingNameIntegrity(sheet);
 
         String prevEmail = "----";
         String currEmail = "";
@@ -330,7 +334,9 @@ public class Source {
                 continue;
             }
             if (!mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")).equals(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Consumer URL Text")))) {
-                throw new RuntimeException("There was a listing where the Listing Name doesn't match the URL Text! - Listing: " + mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")));
+                String ID = mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row,"Listing ID"));
+                ID = ID.substring(0,ID.indexOf("."));
+                throw new RuntimeException("There was a listing where the Listing Name doesn't match the URL Text! - Listing " + ID +": " + mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")));
             }
 
         }
