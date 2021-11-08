@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.poi.ss.usermodel.*;
 
 /**
@@ -61,7 +59,7 @@ public class Source {
                     //if test mode is off, run a confirmation input step
                     SendEmail.testMode = false;
                     do {
-                        System.out.print("Running and sending to RR contacts. **If re-sending errors** the listing IDs will be emailed using the data of the month/year you are about to select.\nType 'yes' to confirm production run: ");
+                        System.out.print("Running and sending to RR contacts.\n**If re-sending errors** the listing IDs will be emailed using the data of the month/year you are about to select.\nType 'yes' to confirm production run: ");
                     } while (!in.nextLine().toLowerCase().contains("yes"));
                     System.out.println("");
                     break;
@@ -82,7 +80,7 @@ public class Source {
         try {
             initialization();
         } catch (RuntimeException e) {
-            System.out.println("ERROR: " + e.getMessage());
+            printError("" + e.getMessage());
         }
 
         //Get input for month and year
@@ -98,18 +96,16 @@ public class Source {
                 out.write("Script run on " + monthNames[sheetNo] + ", " + year + " at " + formatter.format(date) + ".");
             }
         } catch (IOException ex) {
-            System.out.println("ERROR: Missing permissions to write to file! (Path: " + powershellScript + "\\lastRun.txt)");
+            printError("Missing permissions to write to file! (Path: " + powershellScript + "\\lastRun.txt)");
         }
 
         //Begin processing the spreadsheet
         System.out.print("\nProcessing");
-        delay(3);
+        delay(0.5);
         //Define the Spreadsheet and parse location and check it exits
         File docPath = new File(excelPath);
         if (docPath.list().length == 0) {
-            System.out.println("Your Excel file couldn't be found at: ");
-            System.out.println("\t" + excelPath);
-            System.out.println("Please check this file's location and try again.");
+            printError("Your Excel file couldn't be found at: \n\t" + excelPath + "\nPlease check this file's location and try again.");
             return;
         }
         //Get the path to the file to parse through it
@@ -117,7 +113,7 @@ public class Source {
         try {
             mySpreadSheet.setupSpreadsheet(workbookSetup, sheetNo);
         } catch (InterruptedException ex) {
-            System.out.println("ERROR: The worksheet could not be set up.");
+            printError("The worksheet could not be set up.");
         }
         writer = CellWriter.getInstance();
         ArrayList<Integer> errorsList = null;
@@ -127,7 +123,7 @@ public class Source {
                 //Begin re-running only errored emails by populating the errors list
                 errorsList = RunErrorsOnly();
             } catch (IOException ex) {
-                System.out.println("ERROR: The error list wasn't able to be read or couldn't be found! Were there any errors to re-run?");
+                printError("The error list wasn't able to be read or couldn't be found! Were there any errors to re-run?");
                 return;
             }
         }
@@ -135,11 +131,12 @@ public class Source {
             //Beginning running the review. If errors is no longer null, it will run the errors only.
             sheet = RunResourceReview(sheetNo, errorsList);
         } catch (IllegalArgumentException ex) {
-            System.out.println("ERROR: The tabs were out of order! Please re-order the tabs and run again.");
+            //Tabs out of order or null cell passed
+            printError(ex.getMessage());
         } catch (FileNotFoundException ex) {
-            System.out.println("ERROR: The spreadsheet could not be set up, the file was inaccessable.");
-        } catch (RuntimeException ex){
-            System.out.println("ERROR: " + ex.getMessage());
+            printError("The spreadsheet could not be set up, the file was inaccessable.");
+        } catch (RuntimeException ex) {
+            printError(ex.getMessage());
         }
 
         System.out.println("Finished processing");
@@ -147,24 +144,23 @@ public class Source {
         if (sheet != null) {
             //Generate emails for non-errored entries to be sent by powershell
             System.out.print("\nGenerating emails");
-            delay(3);
+            delay(0.5);
             try {
                 sendEmails();
             } catch (IOException ex) {
-                System.out.println("ERROR: Unable to start powershell processes. Please run manually in the PS folder.");
+                printError("Unable to start powershell processes. Please run manually in the PS folder.");
             }
 
             ErrorTracker errors = reportErrors();
 
             //write the dates into the contact column
             System.out.print("\nUpdating dates for successfull entries");
-            delay(3);
+            delay(0.5);
             try {
                 updateDates(sheet, errors);
                 updateFormulas(sheet);
             } catch (RuntimeException ex) {
-                System.out.println("A runtime exception occured:\n" + ex.getMessage());
-                System.out.println("Please contact support with this message and the following information:");
+                printError("A runtime exception occured:\n" + ex.getMessage() + "\nPlease contact support with this message and the following information:");
                 ex.printStackTrace();
                 return;
             }
@@ -172,7 +168,7 @@ public class Source {
                 writer.closeWriter();
                 System.out.println("Finished updating dates.");
             } catch (IOException ex) {
-                System.out.println("ERROR: Unable to save and close the sheet. Dates have not been updated. Make sure the sheet is closed before running.");
+                printError("Unable to save and close the sheet. Dates have not been updated. Make sure the sheet is closed before running.");
                 return;
             }
 
@@ -219,7 +215,7 @@ public class Source {
      * @throws FileNotFoundException ParseEmailFormat couldn't open the file at
      * the given path
      */
-    private static Sheet RunResourceReview(int sheetNo, ArrayList<Integer> errors) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
+    private static Sheet RunResourceReview(int sheetNo, ArrayList<Integer> errors) throws FileNotFoundException, RuntimeException {
         ParseEmailFormat parse = new ParseEmailFormat(mySpreadSheet.getSheet(sheetNo), resourceReviewsPath);
         //Parse through the email addresses, combining all agencies per address before moving to the next
         Sheet sheet = mySpreadSheet.getSheet(sheetNo);
@@ -301,8 +297,7 @@ public class Source {
         }
         //throw exception if the tab name matches the expected name
         if (!(fullTabName).contains(lookingFor) || Character.isDigit(nextChar)) {
-            System.out.println("Tabs our of order!");
-            throw new IllegalArgumentException("Tabs out of order!");
+            throw new IllegalArgumentException("The tabs were out of order! Please re-order the tabs and run again.");
         }
     }
 
@@ -316,6 +311,9 @@ public class Source {
         for (Row row : sheet) {
             if (row.getRowNum() == 0) {
                 continue;
+            }
+            if (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID")).equals("")) {
+                break;
             }
             String rowNum = row.getRowNum() + "";
             String contactNoFormula = "=IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\":\",\"\"))),0)";
@@ -333,10 +331,13 @@ public class Source {
             if (row.getRowNum() == 0) {
                 continue;
             }
+            if (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID")).equals("")) {
+                break;
+            }
             if (!mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")).equals(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Consumer URL Text")))) {
-                String ID = mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row,"Listing ID"));
-                ID = ID.substring(0,ID.indexOf("."));
-                throw new RuntimeException("There was a listing where the Listing Name doesn't match the URL Text! - Listing " + ID +": " + mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")));
+                String ID = mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID"));
+                ID = ID.substring(0, ID.indexOf("."));
+                throw new RuntimeException("There was a listing where the Listing Name doesn't match the URL Text! - Listing " + ID + ": " + mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")));
             }
 
         }
@@ -360,7 +361,7 @@ public class Source {
                 try {
                     mySpreadSheet.setupWorkbook(excelPath + "\\" + new File(excelPath).list()[0]);
                 } catch (IOException ex) {
-                    System.out.println("ERROR: The workbook could not be set up, the file was inaccessable.");
+                    printError("The workbook could not be set up, the file was inaccessable.");
                 }
             }
         };
@@ -515,11 +516,23 @@ public class Source {
      *
      * @param sec the seconds to wait
      */
-    private static void delay(int sec) {
+    private static void delay(double sec) {
         System.out.println("\r");
         try {
-            Thread.sleep(1000 * sec);
+            Thread.sleep((long) (1000 * sec));
         } catch (InterruptedException ex) {
         }
+    }
+
+    /**
+     * A method to print formatted errors to console
+     *
+     * @param message the message to print
+     */
+    private static void printError(String message) {
+
+        System.out.println("\n******");
+        System.out.println("ERROR: " + message);
+        System.out.println("******\n");
     }
 }

@@ -89,7 +89,7 @@ public class CellWriter {
     public Cell setCellText(Cell cell, String newText) throws IllegalArgumentException {
         isSetUp();
         if (cell == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Trying to write to a cell that doesn't exist.");
         }
         cell.setCellValue(newText.trim());
         return cell;
