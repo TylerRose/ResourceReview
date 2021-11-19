@@ -120,9 +120,9 @@ public class ParseEmailFormat {
                 //Try to insert the ID's information into the email
                 try {
                     colTitle = text.substring(start + 1, stop);
-                    replacementText = spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, colTitle));
+                    replacementText = spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, colTitle)).toLowerCase();
                     //No error if it was pulling first name, web review.
-                    if (replacementText.equals("Administrative Contact First Name")) {
+                    if (replacementText.equals(("Administrative Contact First Name").toLowerCase())) {
                         skip = true;
                     }
                     if (replacementText.equals("")) {

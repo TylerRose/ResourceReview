@@ -16,6 +16,7 @@ public class CellWriter {
     private static XSSFWorkbook book;
     private static String fileLocation;
     private static boolean isSetUp;
+    public static boolean readOnly = false;
 
     /**
      * Private constructor for Singleton CellWriter
@@ -47,9 +48,11 @@ public class CellWriter {
     public void closeWriter() throws IOException {
         isSetUp();
         //initialize out as the file output
-        try (FileOutputStream out = new FileOutputStream(fileLocation, false)) {            
-            //write and close the book through file stream out
-            book.write(out);
+        if (!readOnly) {
+            try (FileOutputStream out = new FileOutputStream(fileLocation, false)) {
+                //write and close the book through file stream out
+                book.write(out);
+            }
         }
         writer = null;
         book = null;
@@ -131,14 +134,14 @@ public class CellWriter {
         }
         return value;
     }
-    
+
     /**
      * Evaluate the formula in a cell. The formula will remain in the cell and
      * Excel will display the resulting value.
-     * 
+     *
      * @param cell the cell containing the formula to evaluate
      */
-    public void refreshCell(Cell cell){
+    public void refreshCell(Cell cell) {
         isSetUp();
         FormulaEvaluator evaluator = book.getCreationHelper().createFormulaEvaluator();
         evaluator.evaluateFormulaCell(cell);

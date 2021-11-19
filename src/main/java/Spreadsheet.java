@@ -86,7 +86,7 @@ public class Spreadsheet {
         colTitles = new HashMap<>();
         int i = 0;
         for (Cell cell : book.getSheetAt(sheet).getRow(0)) {
-            colTitles.put(cell + "", i++);
+            colTitles.put((cell + "").toLowerCase(), i++);
         }
         CellWriter writer = CellWriter.getInstance();
         writer.setUpWriter(book, fileLocation);
@@ -143,7 +143,7 @@ public class Spreadsheet {
     public ArrayList<Row> getRowsByColumnName(Sheet sheet, String columnName) throws RuntimeException {
         isSetUp();
         //Get email column
-        int col = colTitles.get(columnName);
+        int col = colTitles.get(columnName.toLowerCase());
         //Get all rows with data in the column title that matches the provided one
         ArrayList<Row> rows = new ArrayList<>();
         int i = 0;
@@ -171,7 +171,7 @@ public class Spreadsheet {
      */
     public Cell getCellByRowAndTitle(Row row, String title) throws java.lang.NullPointerException {
         isSetUp();
-        int columnIndex = colTitles.get(title);
+        int columnIndex = colTitles.get(title.toLowerCase());
         try {
             return row.getCell(columnIndex);
         } catch (java.lang.NullPointerException npe) {

@@ -52,6 +52,8 @@ public class Source {
         } else {
             //Set test mode (send all internal) if first argument is test= true/false
             switch (args[0].toLowerCase()) {
+                case "test=readonly":
+                    writer.readOnly = true;                    
                 case "test=true":
                     SendEmail.testMode = true;
                     break;
@@ -315,13 +317,16 @@ public class Source {
             if (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID")).equals("")) {
                 break;
             }
-            String rowNum = row.getRowNum() + "";
+            String rowNum = row.getRowNum()+1 + "";
             String contactNoFormula = "=IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\":\",\"\"))),0)";
             String nextEmailOrdinalFormula = "=IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\"E\",\"\"))),0)+1 &IF(MOD(ABS(IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\"E\",\"\"))),0)),100)+1>=4,\"th\",CHOOSE(MOD(ABS(IF(LEN(W" + rowNum + ")>1,SUM(LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\"E\",\"\"))),0)+1),10)+1,\"th\",\"st\",\"nd\",\"rd\"))";
             String lastContactFormula = "=IFERROR(RIGHT(W" + rowNum + ",LEN(W" + rowNum + ")-1-FIND(\"@\",SUBSTITUTE(W" + rowNum + ",\",\",\"@\",LEN(W" + rowNum + ")-LEN(SUBSTITUTE(W" + rowNum + ",\",\",\"\"))),1)),W" + rowNum + ")";
             writer.setCellText(mySpreadSheet.getCellByRowAndTitle(row, "Contact No"), contactNoFormula);
+            //System.out.println("Cell before:" + mySpreadSheet.getCellByRowAndTitle(row, "Next Email Ordinal"));
             writer.setCellText(mySpreadSheet.getCellByRowAndTitle(row, "Next Email Ordinal"), nextEmailOrdinalFormula);
+            //System.out.println("Cell after:" + mySpreadSheet.getCellByRowAndTitle(row, "Next Email Ordinal"));
             writer.setCellText(mySpreadSheet.getCellByRowAndTitle(row, "Latest Contact"), lastContactFormula);
+            //System.out.println("Formula updated for row #"+rowNum);
         }
         updateFormulas(sheet);
     }
@@ -334,7 +339,7 @@ public class Source {
             if (mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID")).equals("")) {
                 break;
             }
-            if (!mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")).equals(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Consumer URL Text")))) {
+            if (!mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")).toLowerCase().equals(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Consumer URL Text")).toLowerCase())) {
                 String ID = mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID"));
                 ID = ID.substring(0, ID.indexOf("."));
                 throw new RuntimeException("There was a listing where the Listing Name doesn't match the URL Text! - Listing " + ID + ": " + mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing Name")));
