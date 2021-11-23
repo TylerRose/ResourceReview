@@ -97,16 +97,12 @@ public class SendEmail {
      * @param file the file name to write to
      * @param text the text to write
      */
-    private static void writeFile(String outFilePath, String file, String text) {
+    private static void writeFile(String outFilePath, String file, String text) throws IOException {
         outFilePath = outFilePath + file + ".txt";
         File outFile = new File(outFilePath);
-        try {
             new File(outFilePath).createNewFile();
             out = new BufferedWriter(new FileWriter(outFile));
             out.write(text);
             out.close();
-        } catch (IOException ex) {
-            Logger.getLogger(SendEmail.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 }

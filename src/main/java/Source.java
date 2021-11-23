@@ -66,6 +66,7 @@ public class Source {
                     System.out.println("");
                     break;
                 default:
+                    System.out.println("Unknown arguments, running in TEST MODE");
                     SendEmail.testMode = true;
                     break;
             }
@@ -224,7 +225,7 @@ public class Source {
         //Ensure tabs are in the correct order before running the sheet
         CheckTabOrder(sheet, sheetNo);
         //Ensure the formulas for each column are accurate
-        CheckFormulaIntegrity(sheet);
+        //CheckFormulaIntegrity(sheet);
         //Ensure the listing name matches the listing text for the URL hyperlink
         CheckListingNameIntegrity(sheet);
 

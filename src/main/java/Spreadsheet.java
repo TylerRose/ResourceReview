@@ -115,7 +115,7 @@ public class Spreadsheet {
     public ArrayList<Row> getRowsByAdminContactEmail(Sheet sheet, String email) throws RuntimeException {
         isSetUp();
         //Get email column
-        int col = colTitles.get("Administrative Contact Email");
+        int col = colTitles.get(("Administrative Contact Email").toLowerCase());
         //Get all rows with the email that matches the provided one
         ArrayList<Row> rows = new ArrayList<>();
         int i = 0;
