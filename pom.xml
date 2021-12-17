@@ -5,6 +5,39 @@
     <artifactId>ResourceReview</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <!--        <repository>
+            <id>Alternative</id>
+            <name>Alternative Repository</name>
+            <url>http://repository.openmindonline.it/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>-->
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -16,6 +49,11 @@
             <artifactId>poi-ooxml</artifactId>
             <version>3.15</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>1.6.3</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,6 +63,50 @@
     </properties>
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>1.5.2</version>
+                <executions>
+                    <execution>
+                        <id>l4j-gui</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <outfile>target/ResourceReview.exe</outfile>
+                            <jar>target/${project.artifactId}-${project.version}.jar</jar>
+                            <!-- if <dontWrapJar>true</dontWrapJar> change to this conf <jar>${project.artifactId}-${project.version}.jar</jar> -->
+                            <dontWrapJar>false</dontWrapJar>
+                            <errTitle>Error in launch4j plugin</errTitle>
+                            <classPath>
+                                <mainClass>GUI.MainGUI</mainClass>
+                            </classPath>
+                            <!--<icon>Project.ico</icon>-->
+                            <jre>
+                                <minVersion>1.5.0</minVersion>
+                                <maxVersion>1.8.0_261</maxVersion>
+                                <initialHeapSize>512</initialHeapSize>
+                                <maxHeapSize>1024</maxHeapSize>
+                            </jre>
+                            <versionInfo>
+                                <fileVersion>1.0.0.0</fileVersion>
+                                <txtFileVersion>1.0.0.0</txtFileVersion>
+                                <fileDescription>des</fileDescription>
+                                <copyright>Copyright (c) 2014 </copyright>
+                                <companyName>comp</companyName>
+                                <productVersion>3.0.0.0</productVersion>
+                                <txtProductVersion>${project.version}</txtProductVersion>
+                                <productName>Project</productName>
+                                <internalName>Project</internalName>
+                                <originalFilename>Project.exe</originalFilename>
+                            </versionInfo>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -38,7 +120,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        Source
+                                        GUI.MainGUI
                                     </mainClass>
                                 </manifest>
                             </archive>
