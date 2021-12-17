@@ -64,7 +64,7 @@
                           <Component id="jPanel3" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="5" max="32767" attributes="0"/>
                       </Group>
                       <Group type="102" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
@@ -125,7 +125,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="btnErrorsOnly" max="32767" attributes="0"/>
-                          <Component id="btnRunProd" alignment="0" pref="163" max="32767" attributes="0"/>
+                          <Component id="btnRunProd" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -149,7 +149,7 @@
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="99" red="99" type="rgb"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Errors Only"/>
+                <Property name="text" type="java.lang.String" value="Run Corrected Errors Only"/>
                 <Property name="toolTipText" type="java.lang.String" value="Test Mode but no dates are updated"/>
                 <Property name="name" type="java.lang.String" value="" noResource="true"/>
               </Properties>
@@ -275,8 +275,8 @@
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="btnTestMode" max="32767" attributes="0"/>
-                          <Component id="btnReadOnly" alignment="0" pref="163" max="32767" attributes="0"/>
+                          <Component id="btnTestMode" pref="179" max="32767" attributes="0"/>
+                          <Component id="btnReadOnly" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -297,7 +297,7 @@
           <SubComponents>
             <Component class="javax.swing.JButton" name="btnReadOnly">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Read Only Test"/>
+                <Property name="text" type="java.lang.String" value="No Dates Added Test"/>
                 <Property name="toolTipText" type="java.lang.String" value="Test Mode but no dates are updated"/>
                 <Property name="name" type="java.lang.String" value="" noResource="true"/>
               </Properties>

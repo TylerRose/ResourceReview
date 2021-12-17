@@ -238,6 +238,7 @@ public class RRMain {
             writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Contact No"));
             writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Next Email Ordinal"));
             writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Latest Contact"));
+            writer.refreshCell(mySpreadSheet.getCellByRowAndTitle(row, "Next Contact No"));
         }
     }
 

@@ -8,13 +8,13 @@ import review.SendEmail;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 /**
  *
  * @author tyler
  */
 public class LoginGUI extends javax.swing.JFrame {
+
+    private boolean showingPass = false;
 
     /**
      * Creates new form LoginGUI
@@ -75,6 +75,9 @@ public class LoginGUI extends javax.swing.JFrame {
 
         jButton1.setText("Show");
         jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 jButton1MousePressed(evt);
             }
@@ -145,11 +148,11 @@ public class LoginGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MousePressed
-        txtPassword.setEchoChar((char) 0);
+        //txtPassword.setEchoChar((char) 0);
     }//GEN-LAST:event_jButton1MousePressed
 
     private void jButton1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseReleased
-        txtPassword.setEchoChar('*');
+        //txtPassword.setEchoChar('*');
     }//GEN-LAST:event_jButton1MouseReleased
 
     private void btnSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSubmitActionPerformed
@@ -185,6 +188,16 @@ public class LoginGUI extends javax.swing.JFrame {
     private void txtPasswordFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtPasswordFocusLost
         // TODO add your handling code here:
     }//GEN-LAST:event_txtPasswordFocusLost
+
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        showingPass = !showingPass;
+        if (showingPass) {
+            txtPassword.setEchoChar((char) 0);
+        }
+        if (!showingPass) {
+            txtPassword.setEchoChar('*');
+        }        
+    }//GEN-LAST:event_jButton1MouseClicked
 
     /**
      * @param args the command line arguments
