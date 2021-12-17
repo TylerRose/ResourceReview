@@ -77,7 +77,8 @@ public class EmailManager {
             SendEmail.sendAnEmail(mail);
             MainGUI.replaceLastLog("Sent " + SendEmail.sentCount + " / " + emailList.size());
         }
-        SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
+        //SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
+        SendEmail.sendAnEmail(new Email("resourcereviews@homage.org",
                 "Resource Review Emails Finished Sending!",
                 "You have finished sending " + SendEmail.sentCount + " emails for " + (RRMain.sheetNo + 1) + "/" + RRMain.year + "."));
     }

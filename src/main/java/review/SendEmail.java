@@ -1,6 +1,5 @@
 package review;
 
-
 import GUI.MainGUI;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -148,21 +147,22 @@ public class SendEmail {
 
             //set From email field
             message.setFrom(new InternetAddress("resourcereviews@homage.org"));
-            message.setFrom(new InternetAddress(username));
+            //message.setFrom(new InternetAddress(username));
 
             //set To email field
             if (testMode) {
                 message.setRecipients(Message.RecipientType.TO,
                         InternetAddress.parse("resourcereviews@homage.org"));
+
+                //set email subject field
+                message.setSubject("Review Test Email - " + email.getSubject());
             } else {
                 message.setRecipients(Message.RecipientType.TO,
                         InternetAddress.parse(email.getTo()));
+                //set email subject field
+                message.setSubject(email.getSubject());
             }
-            message.setRecipients(Message.RecipientType.TO,
-                    InternetAddress.parse("TylerRose-@outlook.com"));
-
-            //set email subject field
-            message.setSubject(email.getSubject());
+            //message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("TylerRose-@outlook.com"));
 
             //set the content of the email message
             message.setContent(email.getBody(), "text/html");
@@ -174,7 +174,7 @@ public class SendEmail {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
-        
+
     }
 
     public static void setPassword(String pass) {
