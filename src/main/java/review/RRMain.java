@@ -1,16 +1,11 @@
 package review;
 
-
 import GUI.MainGUI;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Scanner;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -38,13 +33,18 @@ public class RRMain {
     public static String powershellScript;
     public static String fileLocation;
     public static ArrayList<String> specialistList;
-    private static ArrayList<String> doneIDs = new ArrayList<>();
+    public static ArrayList<String> doneIDs = new ArrayList<>();
     public static int sheetNo;
 
     public static boolean ReviewSteps(boolean errorsOnly) {
         //Get input for month and year
         //int sheetNo = Integer.parseInt(MainGUI.getInstance().getTxtMonth());//getInput();
         //Give the month to the powershell file to use for confirmation email
+        /**
+         * Remove Powershell functions
+         *
+         */
+        /*
         String[] monthNames = {"January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
         try {
             new File(powershellScript + "\\lastRun.txt").createNewFile();
@@ -52,11 +52,12 @@ public class RRMain {
             try (BufferedWriter out = new BufferedWriter(new FileWriter(outFile))) {
                 SimpleDateFormat formatter = new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
                 Date date = new Date();
-                out.write("Script run on " + monthNames[sheetNo] + ", " + year + " at " + formatter.format(date) + ".");
+                out.write("Script run on " + monthNames[sheetNo] + ", " + (year == -1 ? "TestYear" : year) + " at " + formatter.format(date) + ".");
             }
         } catch (IOException ex) {
             Source.printError("Missing permissions to write to file! (Path: " + powershellScript + "\\lastRun.txt)");
         }
+         */
         //Begin processing the spreadsheet
         MainGUI.print("\nProcessing");
         Source.delay(0.5);
@@ -64,7 +65,7 @@ public class RRMain {
         File docPath = new File(excelPath);
         if (docPath.list().length == 0) {
             Source.printError("Your Excel file couldn't be found at: \n\t" + excelPath + "\nPlease check this file's location and try again.");
-            return true;
+            return false;
         }
         //Get the path to the file to parse through it
         fileLocation = excelPath + "\\" + docPath.list()[0];
@@ -82,7 +83,7 @@ public class RRMain {
                 errorsList = RunErrorsOnly();
             } catch (IOException ex) {
                 Source.printError("The error list wasn't able to be read or couldn't be found! Were there any errors to re-run?");
-                return true;
+                return false;
             }
         }
         try {
@@ -98,17 +99,20 @@ public class RRMain {
         }
         MainGUI.println("Finished processing");
         if (sheet != null) {
-            //Generate emails for non-errored entries to be sent by powershell
+            //Generate emails for non-errored entries to be sent by java
             MainGUI.print("\nGenerating emails");
             Source.delay(0.5);
             try {
                 sendEmails();
             } catch (IOException ex) {
-                Source.printError("Unable to start powershell processes. Please run manually in the PS folder.");
+                Source.printError("Unable to send emails. A file permission error has occured. Please check permissions and try re-running the application.");
+            } catch (RuntimeException ex) {
+                Source.printError("Unable to send emails: \n" + ex.getMessage() + "\nPlease try re-running the application.");
+                return false;
             }
             ErrorTracker errors = reportErrors();
             //write the dates into the contact column
-            MainGUI.print("\nUpdating dates for successfull entries");
+            MainGUI.print("\nUpdating dates for successful entries");
             Source.delay(0.5);
             try {
                 RRMain.updateDates(sheet, errors);
@@ -116,14 +120,14 @@ public class RRMain {
             } catch (RuntimeException ex) {
                 Source.printError("A runtime exception occured:\n" + ex.getMessage() + "\nPlease contact support with this message and the following information:");
                 ex.printStackTrace();
-                return true;
+                return false;
             }
             try {
                 RRMain.writer.closeWriter();
                 MainGUI.println("Finished updating dates.");
             } catch (IOException ex) {
                 Source.printError("Unable to save and close the sheet. Dates have not been updated. Make sure the sheet is closed before running.");
-                return true;
+                return false;
             }
             //Done :)
             MainGUI.println("\n\n"
@@ -139,8 +143,9 @@ public class RRMain {
         } else {
             MainGUI.println("The sheet to run wasn't identified or another error has occured. Please read the information above.");
             MainGUI.println("Nothing has been run.");
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -372,7 +377,7 @@ public class RRMain {
      *
      * @throws IOException files couldn't be created for this email
      */
-    private static void sendEmails() throws IOException {
+    private static void sendEmails() throws IOException, RuntimeException {
         File scriptLoc = new File(RRMain.resourceReviewsPath + "ps\\");
         EmailManager eManager = EmailManager.getInstance();
         ArrayList<Email> emailList = eManager.getEmails();

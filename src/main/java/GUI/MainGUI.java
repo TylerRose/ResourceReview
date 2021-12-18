@@ -5,7 +5,6 @@ package GUI;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 import review.Source;
 import review.SendEmail;
 import review.RRMain;
@@ -13,8 +12,12 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,6 +37,8 @@ public class MainGUI extends javax.swing.JFrame {
     private MainGUI() {
         instance = this;
         initComponents();
+        txtMonth.setForeground(Color.GRAY);
+        txtYear.setForeground(Color.GRAY);
         posX = instance.getAlignmentX();
         posY = instance.getAlignmentY();
         log = new StringBuilder();
@@ -76,6 +81,7 @@ public class MainGUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        btnReadOnly = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
@@ -88,11 +94,22 @@ public class MainGUI extends javax.swing.JFrame {
         spnSpecialist = new javax.swing.JComboBox<>();
         txtMonth = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        btnReadOnly = new javax.swing.JButton();
         btnTestMode = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
+        jMenuBar2 = new javax.swing.JMenuBar();
+        jMenu3 = new javax.swing.JMenu();
+
+        btnReadOnly.setText("No Dates Added Test");
+        btnReadOnly.setToolTipText("Test Mode but no dates are updated");
+        btnReadOnly.setName(""); // NOI18N
+        btnReadOnly.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnReadOnlyMouseClicked(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Resource Review Automation");
@@ -114,10 +131,11 @@ public class MainGUI extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Dialog", 1, 24)); // NOI18N
-        jLabel1.setText("Run A Resource Review");
+        jLabel1.setFont(new java.awt.Font("Dialog", 1, 36)); // NOI18N
+        jLabel1.setText("Run a Resource Review");
 
         btnErrorsOnly.setBackground(new java.awt.Color(153, 153, 255));
+        btnErrorsOnly.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         btnErrorsOnly.setText("Run Corrected Errors Only");
         btnErrorsOnly.setToolTipText("Test Mode but no dates are updated");
         btnErrorsOnly.setName(""); // NOI18N
@@ -128,6 +146,7 @@ public class MainGUI extends javax.swing.JFrame {
         });
 
         btnRunProd.setBackground(new java.awt.Color(153, 153, 255));
+        btnRunProd.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         btnRunProd.setText("Production Run");
         btnRunProd.setToolTipText("Test Mode but no dates are updated");
         btnRunProd.setName(""); // NOI18N
@@ -158,8 +177,10 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(74, Short.MAX_VALUE))
         );
 
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         jLabel3.setText("Year to Run");
 
+        txtYear.setFont(new java.awt.Font("Dialog", 0, 16)); // NOI18N
         txtYear.setText("Year");
         txtYear.addCaretListener(new javax.swing.event.CaretListener() {
             public void caretUpdate(javax.swing.event.CaretEvent evt) {
@@ -175,14 +196,17 @@ public class MainGUI extends javax.swing.JFrame {
             }
         });
 
+        jLabel4.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         jLabel4.setText("Specialist");
 
+        spnSpecialist.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         spnSpecialist.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 spnSpecialistActionPerformed(evt);
             }
         });
 
+        txtMonth.setFont(new java.awt.Font("Dialog", 0, 16)); // NOI18N
         txtMonth.setText("Month Number");
         txtMonth.addCaretListener(new javax.swing.event.CaretListener() {
             public void caretUpdate(javax.swing.event.CaretEvent evt) {
@@ -198,7 +222,11 @@ public class MainGUI extends javax.swing.JFrame {
             }
         });
 
+        jLabel5.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         jLabel5.setText("Month to Run");
+
+        jLabel7.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
+        jLabel7.setText("(Skip for tests)");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -207,22 +235,23 @@ public class MainGUI extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(spnSpecialist, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtMonth)
-                            .addComponent(txtYear))
-                        .addGap(0, 113, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(14, 14, 14)
+                        .addComponent(jLabel7))
+                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(spnSpecialist, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtMonth)
+                    .addComponent(txtYear)))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel3)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -236,21 +265,18 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        btnReadOnly.setText("No Dates Added Test");
-        btnReadOnly.setToolTipText("Test Mode but no dates are updated");
-        btnReadOnly.setName(""); // NOI18N
-        btnReadOnly.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnReadOnlyMouseClicked(evt);
-            }
-        });
-
-        btnTestMode.setText("Run a Test");
+        btnTestMode.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
+        btnTestMode.setText("Run from 0test0");
         btnTestMode.setToolTipText("Run the review in test mode");
         btnTestMode.setName(""); // NOI18N
         btnTestMode.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 btnTestModeMouseClicked(evt);
+            }
+        });
+        btnTestMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTestModeActionPerformed(evt);
             }
         });
 
@@ -260,9 +286,7 @@ public class MainGUI extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnTestMode, javax.swing.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE)
-                    .addComponent(btnReadOnly, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(btnTestMode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -270,14 +294,12 @@ public class MainGUI extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(btnTestMode)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnReadOnly)
-                .addContainerGap(74, Short.MAX_VALUE))
+                .addContainerGap(112, Short.MAX_VALUE))
         );
 
         txtLog.setEditable(false);
         txtLog.setColumns(20);
-        txtLog.setFont(new java.awt.Font("Lucida Sans Typewriter", 0, 12)); // NOI18N
+        txtLog.setFont(new java.awt.Font("Lucida Sans Typewriter", 0, 16)); // NOI18N
         txtLog.setLineWrap(true);
         txtLog.setRows(5);
         txtLog.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -292,11 +314,11 @@ public class MainGUI extends javax.swing.JFrame {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(75, 75, 75)
+                        .addGap(51, 51, 51)
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 5, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1)
@@ -325,6 +347,12 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        jMenu3.setText("Resource Review Version 2.0.2");
+        jMenu3.setEnabled(false);
+        jMenuBar2.add(jMenu3);
+
+        setJMenuBar(jMenuBar2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -345,54 +373,63 @@ public class MainGUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void spnSpecialistActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spnSpecialistActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_spnSpecialistActionPerformed
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        Source.close = true;
+    }//GEN-LAST:event_formWindowClosing
 
-    private void txtYearFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtYearFocusGained
-        if (txtYear.getText().equals("Year")) {
-            txtYear.setText("");
-            txtYear.setBackground(Color.PINK);
+    private void btnReadOnlyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnReadOnlyMouseClicked
+        if (validInput(true)) {
+            RRMain.writer.readOnly = true;
+            SendEmail.retryLogin = true;
+            new LoginGUI().setVisible(true);
         }
-    }//GEN-LAST:event_txtYearFocusGained
+    }//GEN-LAST:event_btnReadOnlyMouseClicked
 
-    private void txtMonthFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtMonthFocusGained
-        if (txtMonth.getText().equals("Month Number")) {
-            txtMonth.setText("");
-            txtMonth.setBackground(Color.PINK);
+    private void btnErrorsOnlyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnErrorsOnlyMouseClicked
+        if (validInput(false)) {
+            SendEmail.testMode = false;
+            RRMain.writer.readOnly = false;
+            RRMain.errorsOnly = true;
+            SendEmail.retryLogin = true;
+            new ConfirmationGUI().setVisible(true);
         }
-    }//GEN-LAST:event_txtMonthFocusGained
+    }//GEN-LAST:event_btnErrorsOnlyMouseClicked
 
-    private void txtYearFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtYearFocusLost
-        if (txtYear.getText().equals("")) {
-            txtYear.setText("Year");
-            txtYear.setBackground(Color.WHITE);
+    private void btnRunProdMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRunProdMouseClicked
+        if (validInput(false)) {
+            SendEmail.testMode = false;
+            RRMain.writer.readOnly = false;
+            RRMain.errorsOnly = false;
+            SendEmail.retryLogin = true;
+            new ConfirmationGUI().setVisible(true);
         }
-    }//GEN-LAST:event_txtYearFocusLost
+    }//GEN-LAST:event_btnRunProdMouseClicked
+
+    private void jPanel4ComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanel4ComponentMoved
+        posX = instance.getAlignmentX();
+        posY = instance.getAlignmentY();
+    }//GEN-LAST:event_jPanel4ComponentMoved
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
+        posX = instance.getAlignmentX();
+        posY = instance.getAlignmentY();
+    }//GEN-LAST:event_formComponentMoved
 
     private void txtMonthFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtMonthFocusLost
         if (txtMonth.getText().equals("")) {
+            txtMonth.setForeground(Color.GRAY);
             txtMonth.setText("Month Number");
             txtMonth.setBackground(Color.WHITE);
         }
     }//GEN-LAST:event_txtMonthFocusLost
 
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        Source.close = true;
-    }//GEN-LAST:event_formWindowClosing
-
-    private void txtYearCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_txtYearCaretUpdate
-        try {
-            int year = Integer.parseInt(txtYear.getText());
-            if (year > 0) {
-                txtYear.setBackground(Color.WHITE);
-            } else {
-                txtYear.setBackground(Color.PINK);
-            }
-        } catch (NumberFormatException nfe) {
-            txtYear.setBackground(Color.PINK);
+    private void txtMonthFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtMonthFocusGained
+        txtMonth.setForeground(Color.BLACK);
+        if (txtMonth.getText().equals("Month Number")) {
+            txtMonth.setText("");
+            txtMonth.setBackground(Color.PINK);
         }
-    }//GEN-LAST:event_txtYearCaretUpdate
+    }//GEN-LAST:event_txtMonthFocusGained
 
     private void txtMonthCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_txtMonthCaretUpdate
         try {
@@ -407,47 +444,51 @@ public class MainGUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_txtMonthCaretUpdate
 
+    private void spnSpecialistActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spnSpecialistActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_spnSpecialistActionPerformed
+
+    private void txtYearFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtYearFocusLost
+        if (txtYear.getText().equals("")) {
+            txtYear.setForeground(Color.GRAY);
+            txtYear.setText("Year");
+            txtYear.setBackground(Color.WHITE);
+        }
+    }//GEN-LAST:event_txtYearFocusLost
+
+    private void txtYearFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtYearFocusGained
+        txtYear.setForeground(Color.BLACK);
+        if (txtYear.getText().equals("Year")) {
+            txtYear.setText("");
+            txtYear.setBackground(Color.PINK);
+        }
+    }//GEN-LAST:event_txtYearFocusGained
+
+    private void txtYearCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_txtYearCaretUpdate
+        try {
+            int year = Integer.parseInt(txtYear.getText());
+            if (year > 0) {
+                txtYear.setBackground(Color.WHITE);
+            } else {
+                txtYear.setBackground(Color.PINK);
+            }
+        } catch (NumberFormatException nfe) {
+            txtYear.setBackground(Color.PINK);
+        }
+    }//GEN-LAST:event_txtYearCaretUpdate
+
+    private void btnTestModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestModeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnTestModeActionPerformed
+
     private void btnTestModeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnTestModeMouseClicked
-        if (validInput()) {
+        if (validInput(true)) {
             SendEmail.testMode = true;
+            SendEmail.retryLogin = true;
+            //new LoginGUI().setVisible(true);
             new LoginGUI().setVisible(true);
         }
     }//GEN-LAST:event_btnTestModeMouseClicked
-
-    private void btnReadOnlyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnReadOnlyMouseClicked
-        if (validInput()) {
-            RRMain.writer.readOnly = true;
-            new LoginGUI().setVisible(true);
-        }
-    }//GEN-LAST:event_btnReadOnlyMouseClicked
-
-    private void btnErrorsOnlyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnErrorsOnlyMouseClicked
-        if (validInput()) {
-            SendEmail.testMode = false;
-            RRMain.writer.readOnly = false;
-            RRMain.errorsOnly = true;
-            new ConfirmationGUI().setVisible(true);
-        }
-    }//GEN-LAST:event_btnErrorsOnlyMouseClicked
-
-    private void btnRunProdMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRunProdMouseClicked
-        if (validInput()) {
-            SendEmail.testMode = false;
-            RRMain.writer.readOnly = false;
-            RRMain.errorsOnly = false;
-            new ConfirmationGUI().setVisible(true);
-        }
-    }//GEN-LAST:event_btnRunProdMouseClicked
-
-    private void jPanel4ComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanel4ComponentMoved
-        posX = instance.getAlignmentX();
-        posY = instance.getAlignmentY();
-    }//GEN-LAST:event_jPanel4ComponentMoved
-
-    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
-        posX = instance.getAlignmentX();
-        posY = instance.getAlignmentY();
-    }//GEN-LAST:event_formComponentMoved
 
     /**
      * @param args the command line arguments
@@ -489,6 +530,7 @@ public class MainGUI extends javax.swing.JFrame {
                 new MainGUI().setVisible(true);
             }
         });
+
     }
 
     /**
@@ -510,7 +552,7 @@ public class MainGUI extends javax.swing.JFrame {
         //FileInputStream specialists = null;
         //RRMain.specialistList = new ArrayList<>();
         RRMain.resourceReviewsPath = "C:\\ResourceReviewsAutomation\\";
-        RRMain.powershellScript = "C:\\ResourceReviewsAutomation\\ps\\";
+        //RRMain.powershellScript = "C:\\ResourceReviewsAutomation\\ps\\";
 //        try {
 //            new File(RRMain.resourceReviewsPath + "Specialists.txt").createNewFile();
 //            specialists = new FileInputStream(new File(RRMain.resourceReviewsPath + "Specialists.txt"));
@@ -528,7 +570,7 @@ public class MainGUI extends javax.swing.JFrame {
 //        }
         //Create any paths that didn't exist
         new File(RRMain.resourceReviewsPath).mkdirs();
-        new File(RRMain.powershellScript).mkdirs();
+        //new File(RRMain.powershellScript).mkdirs();
     }
 
     public String getSpnSpecialist() {
@@ -589,6 +631,9 @@ public class MainGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenuBar jMenuBar2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -600,11 +645,11 @@ public class MainGUI extends javax.swing.JFrame {
     private javax.swing.JTextField txtYear;
     // End of variables declaration//GEN-END:variables
 
-    private boolean validInput() {
+    private boolean validInput(boolean test) {
         //return false if either box is pink or contains default value
         return !((txtYear.getBackground() == Color.PINK
                 || txtMonth.getBackground() == Color.PINK)
-                || txtYear.getText().equals("Year")
+                || (!test && txtYear.getText().equals("Year"))
                 || txtMonth.getText().equals("Month Number"));
     }
 }

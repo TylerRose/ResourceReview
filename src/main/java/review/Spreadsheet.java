@@ -1,6 +1,5 @@
 package review;
 
-
 import GUI.MainGUI;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +23,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class Spreadsheet {
 
     private static Spreadsheet sheet = null;
-    private boolean isSetUp = false;
+    private boolean isSetUp;
 
     private FileInputStream file;
 
@@ -44,11 +43,15 @@ public class Spreadsheet {
         return sheet;
     }
 
+    public static void resetInstance() {
+        sheet = new Spreadsheet();
+    }
+
     /**
      * Private default constructor for Singleton Spreadsheet object
      */
     private Spreadsheet() {
-
+        isSetUp = false;
     }
 
     /**

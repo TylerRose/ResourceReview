@@ -34,6 +34,10 @@ public class EmailManager {
             return manager;
         }
     }
+    
+    public static void resetInstance(){
+        manager = new EmailManager();
+    }
 
     /**
      * Add an email to the list if there isn't an error
@@ -74,12 +78,16 @@ public class EmailManager {
     public void sendAll() {
         MainGUI.println("Sent " + SendEmail.sentCount + " / " + emailList.size());
         for (Email mail : emailList) {
-            SendEmail.sendAnEmail(mail);
-            MainGUI.replaceLastLog("Sent " + SendEmail.sentCount + " / " + emailList.size());
+            if (SendEmail.retryLogin) {
+                SendEmail.sendAnEmail(mail);
+                MainGUI.replaceLastLog("Sent " + SendEmail.sentCount + " / " + emailList.size());
+            }
         }
-        //SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
-        SendEmail.sendAnEmail(new Email("resourcereviews@homage.org",
-                "Resource Review Emails Finished Sending!",
-                "You have finished sending " + SendEmail.sentCount + " emails for " + (RRMain.sheetNo + 1) + "/" + RRMain.year + "."));
+        if (SendEmail.retryLogin) {
+            //SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
+            SendEmail.sendAnEmail(new Email("resourcereviews@homage.org",
+                    SendEmail.testMode ? "**Test**" : "**Production**" + "Resource Review Emails Finished Sending!",
+                    SendEmail.testMode ? "**Test**" : "**Production**" +"\nYou have finished sending " + SendEmail.sentCount + " emails for " + (RRMain.sheetNo + 1) + "/" + (RRMain.year == -1 ? "TestYear" : RRMain.year) + "."));
+        }
     }
 }

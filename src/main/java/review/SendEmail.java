@@ -1,10 +1,12 @@
 package review;
 
+import GUI.LoginGUI;
 import GUI.MainGUI;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,14 +31,17 @@ public class SendEmail {
 
     public static boolean testMode = true;
     private static BufferedWriter out;
-    private static int index = 0;
-    private static int error = 0;
+    public static int index = 0;
+    public static int error = 0;
     private static Process p = null;
     private static String pathCred = null;
     private static String pathEmail = null;
     public static String username = "";
     private static String password = "";
     public static int sentCount = 0;
+    public static boolean retryLogin = true;
+    public static LoginGUI retryGUI;
+    public static Session session = null;
 
     /**
      * Add an email to the list of emails to run
@@ -46,6 +51,10 @@ public class SendEmail {
      * @throws IOException Couldn't run the powershell process
      */
     public static void addEmail(File scriptPath, Email email) throws IOException {
+        /**
+         * Remove powershell functionality
+         */
+        /*
         //figure out which file is cred/send
         if (pathCred == null || pathEmail == null) {
             if (scriptPath.listFiles()[0].toString().contains("cred")) {
@@ -56,6 +65,7 @@ public class SendEmail {
                 pathEmail = scriptPath.listFiles()[0].toString();
             }
         }
+         */
         //get the email details and write them to file
         String to = email.getTo();
         String subject = email.getSubject();
@@ -95,17 +105,21 @@ public class SendEmail {
     }
 
     /**
+     * Remove powershell functionality
+     */
+    /**
      * Send emails by calling the powershell script
      *
      * @throws java.io.IOException Couldn't start the powershell process
-     * @deprecated superseded by running powershell after the jar
+     * //@deprecated superseded by running powershell after the jar
      */
+    /*
     public static void sendAll() throws IOException {
         //Don't send through java, the powershell is run through the batch instead
         p = (new ProcessBuilder("cmd.exe", "/c", "powershell " + pathEmail)).start();
         MainGUI.println("Sending!");
     }
-
+     */
     /**
      * Write text to a new file with a given name and close the file
      *
@@ -133,14 +147,9 @@ public class SendEmail {
         props.put("mail.host", host);
         props.put("mail.smtp.port", "587");
 
-        //create the Session object
-        Session session = Session.getInstance(props,
-                new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
-            }
-        });
-
+        if (session == null) {
+            Authenticate(props);
+        }
         try {
             //create a MimeMessage object
             Message message = new MimeMessage(session);
@@ -151,14 +160,13 @@ public class SendEmail {
 
             //set To email field
             if (testMode) {
-                message.setRecipients(Message.RecipientType.TO,
-                        InternetAddress.parse("resourcereviews@homage.org"));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("resourcereviews@homage.org"));
 
                 //set email subject field
                 message.setSubject("Review Test Email - " + email.getSubject());
             } else {
-                message.setRecipients(Message.RecipientType.TO,
-                        InternetAddress.parse(email.getTo()));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email.getTo()));
+                message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse("resourcereviews@homage.org"));
                 //set email subject field
                 message.setSubject(email.getSubject());
             }
@@ -170,11 +178,62 @@ public class SendEmail {
             //send the email message
             Transport.send(message);
             sentCount++;
-
+        } catch (javax.mail.AuthenticationFailedException e) {
+            MainGUI.println("Authentication failed: Please log in again.");
+            MainGUI.println("");
+            reAuth();
+            if (retryLogin) {
+                session = null;
+                sendAnEmail(email);
+            } else {
+                throw new RuntimeException("Canceled After Bad Login Credentials");
+            }
         } catch (MessagingException e) {
-            throw new RuntimeException(e);
+            MainGUI.println("Bad email address or unknown messaging error: Please log in again or cancel and re-launch.");
+            MainGUI.println("");
+            reAuth();
+            if (retryLogin) {
+                session = null;
+                sendAnEmail(email);
+            } else {
+                throw new RuntimeException("Canceled After an Unknown Messaging Error");
+            }
         }
 
+    }
+
+    private static void reAuth() {
+        Thread window = new Thread() {
+            @Override
+            public void run() {
+                SendEmail.retryGUI = new LoginGUI();
+                retryGUI.setVisible(true);
+                while (retryGUI.isVisible());
+            }
+        };
+        window.start();
+        while (true) {
+            if (retryGUI != null) {
+                if (!retryGUI.isVisible()) {
+                    break;
+                }
+            }
+            Source.delay(0.5);
+        }
+        MainGUI.println("Authenticating...");
+        retryGUI.dispose();
+        retryGUI = null;
+    }
+
+    private static void Authenticate(Properties props) {
+        //create the Session object
+        session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
     }
 
     public static void setPassword(String pass) {

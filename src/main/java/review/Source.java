@@ -1,9 +1,11 @@
 package review;
 
-
+import GUI.LoginGUI;
 import GUI.MainGUI;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -70,7 +72,31 @@ public class Source {
 
     public static void startReview() {
         getInput();
-        RRMain.ReviewSteps(RRMain.errorsOnly);
+        if (!RRMain.ReviewSteps(RRMain.errorsOnly)) {
+            MainGUI.println("An error has occured: see details above.");
+            MainGUI.print("The sheet has not been modified, no reviews have been run.");
+            MainGUI.println("\n\n");
+        }
+        //reset all variables to defaults to run again
+        resetVars();
+    }
+
+    public static void resetVars() {
+        LoginGUI.retrying = false;
+
+        RRMain.doneIDs = new ArrayList<>();
+
+        SendEmail.index = 0;
+        SendEmail.error = 0;
+        SendEmail.username = "";
+        SendEmail.sentCount = 0;
+        SendEmail.session = null;
+        SendEmail.setPassword("");
+        
+        //reset instances
+        EmailManager.resetInstance();
+        ErrorTracker.resetInstance();
+        Spreadsheet.resetInstance();
     }
 
     /**
@@ -84,8 +110,12 @@ public class Source {
         MainGUI gui = MainGUI.getInstance();
         //MainGUI.println("Please enter the year: ");
         //year = in.nextInt();
-        RRMain.year = Integer.parseInt(gui.getTxtYear());
-        RRMain.excelPath = RRMain.resourceReviewsPath + "Excel\\" + RRMain.year + "\\";
+        if (gui.getTxtYear().equals("Year")) {
+            RRMain.year = -1;
+        } else {
+            RRMain.year = Integer.parseInt(gui.getTxtYear());
+        }
+        RRMain.excelPath = RRMain.resourceReviewsPath + "Excel\\" + (RRMain.year == -1 ? "0test0" : RRMain.year) + "\\";
         //set up the sheet in a separate thread to load data while getting input
         RRMain.workbookSetup = new Thread() {
             @Override

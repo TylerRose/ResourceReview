@@ -24,7 +24,7 @@ public class ParseEmailFormat {
     private Scanner emailHeadTemplate;
     private Scanner emailBodyTemplate;
     private Scanner emailFooterTemplate;
-    private Scanner emailSignatureTemplate = null;
+    private Scanner emailSignatureTemplate;
     private final ErrorTracker errors;
 
     /**

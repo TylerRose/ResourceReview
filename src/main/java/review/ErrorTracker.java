@@ -104,4 +104,8 @@ public class ErrorTracker {
             return tracker;
         }
     }
+    
+    public static void resetInstance(){
+        tracker = new ErrorTracker();
+    }
 }

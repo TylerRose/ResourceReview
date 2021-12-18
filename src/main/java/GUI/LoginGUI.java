@@ -15,6 +15,7 @@ import review.SendEmail;
 public class LoginGUI extends javax.swing.JFrame {
 
     private boolean showingPass = false;
+    public static boolean retrying = false;
 
     /**
      * Creates new form LoginGUI
@@ -46,9 +47,10 @@ public class LoginGUI extends javax.swing.JFrame {
         setLocationByPlatform(true);
         setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel1.setText("Email Login");
 
+        txtUsername.setFont(new java.awt.Font("Dialog", 0, 16)); // NOI18N
         txtUsername.setText("Email Address");
         txtUsername.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -59,10 +61,13 @@ public class LoginGUI extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         jLabel2.setText("Email:");
 
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         jLabel3.setText("Password:");
 
+        txtPassword.setFont(new java.awt.Font("Dialog", 0, 16)); // NOI18N
         txtPassword.setText("SafePassword123");
         txtPassword.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -73,6 +78,7 @@ public class LoginGUI extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         jButton1.setText("Show");
         jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -86,6 +92,7 @@ public class LoginGUI extends javax.swing.JFrame {
             }
         });
 
+        btnSubmit.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         btnSubmit.setText("Submit");
         btnSubmit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -93,6 +100,7 @@ public class LoginGUI extends javax.swing.JFrame {
             }
         });
 
+        btnCancel.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
         btnCancel.setText("Cancel");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -156,20 +164,27 @@ public class LoginGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1MouseReleased
 
     private void btnSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSubmitActionPerformed
+        SendEmail.retryLogin = true;
         SendEmail.username = txtUsername.getText();
         StringBuilder builder = new StringBuilder();
         builder.append(txtPassword.getPassword());
         SendEmail.setPassword(builder.toString());
+
+        this.setVisible(false);
         Thread run = new Thread() {
             public void run() {
                 Source.startReview();
             }
         };
-        run.start();
+        if (!retrying) {
+            retrying = true;
+            run.start();
+        }
         this.dispose();
     }//GEN-LAST:event_btnSubmitActionPerformed
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
+        SendEmail.retryLogin = false;
         this.dispose();
     }//GEN-LAST:event_btnCancelActionPerformed
 
@@ -196,7 +211,7 @@ public class LoginGUI extends javax.swing.JFrame {
         }
         if (!showingPass) {
             txtPassword.setEchoChar('*');
-        }        
+        }
     }//GEN-LAST:event_jButton1MouseClicked
 
     /**
