@@ -12,12 +12,8 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -299,7 +295,7 @@ public class MainGUI extends javax.swing.JFrame {
 
         txtLog.setEditable(false);
         txtLog.setColumns(20);
-        txtLog.setFont(new java.awt.Font("Lucida Sans Typewriter", 0, 16)); // NOI18N
+        txtLog.setFont(new java.awt.Font("Consolas", 0, 16)); // NOI18N
         txtLog.setLineWrap(true);
         txtLog.setRows(5);
         txtLog.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -347,7 +343,7 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jMenu3.setText("Resource Review Version 2.0.2");
+        jMenu3.setText("Resource Review Version 2.0.3");
         jMenu3.setEnabled(false);
         jMenuBar2.add(jMenu3);
 

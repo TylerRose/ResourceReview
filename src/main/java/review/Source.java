@@ -92,7 +92,7 @@ public class Source {
         SendEmail.sentCount = 0;
         SendEmail.session = null;
         SendEmail.setPassword("");
-        
+
         //reset instances
         EmailManager.resetInstance();
         ErrorTracker.resetInstance();

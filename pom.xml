@@ -29,14 +29,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <!--        <repository>
-            <id>Alternative</id>
-            <name>Alternative Repository</name>
-            <url>http://repository.openmindonline.it/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>-->
     </repositories>
     <dependencies>
         <dependency>
@@ -63,7 +55,7 @@
     </properties>
     <build>
         <plugins>
-            <plugin>
+            <!--            <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
                 <version>1.5.2</version>
@@ -78,13 +70,13 @@
                             <headerType>gui</headerType>
                             <outfile>target/ResourceReview.exe</outfile>
                             <jar>target/${project.artifactId}-${project.version}.jar</jar>
-                            <!-- if <dontWrapJar>true</dontWrapJar> change to this conf <jar>${project.artifactId}-${project.version}.jar</jar> -->
+                             if <dontWrapJar>true</dontWrapJar> change to this conf <jar>${project.artifactId}-${project.version}.jar</jar> 
                             <dontWrapJar>false</dontWrapJar>
                             <errTitle>Error in launch4j plugin</errTitle>
                             <classPath>
                                 <mainClass>GUI.MainGUI</mainClass>
                             </classPath>
-                            <!--<icon>Project.ico</icon>-->
+                            <icon>Project.ico</icon>
                             <jre>
                                 <minVersion>1.5.0</minVersion>
                                 <maxVersion>1.8.0_261</maxVersion>
@@ -106,7 +98,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

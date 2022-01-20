@@ -86,8 +86,8 @@ public class EmailManager {
         if (SendEmail.retryLogin) {
             //SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
             SendEmail.sendAnEmail(new Email("resourcereviews@homage.org",
-                    SendEmail.testMode ? "**Test**" : "**Production**" + "Resource Review Emails Finished Sending!",
-                    SendEmail.testMode ? "**Test**" : "**Production**" +"\nYou have finished sending " + SendEmail.sentCount + " emails for " + (RRMain.sheetNo + 1) + "/" + (RRMain.year == -1 ? "TestYear" : RRMain.year) + "."));
+                    (SendEmail.testMode ? "**Test**" : "**Production**") + "Resource Review Emails Finished Sending!",
+                    (SendEmail.testMode ? "**Test**" : "**Production**") +"\nYou have finished sending " + SendEmail.sentCount + " emails for " + (RRMain.sheetNo + 1) + "/" + (RRMain.year == -1 ? "TestYear" : RRMain.year) + "."));
         }
     }
 }
