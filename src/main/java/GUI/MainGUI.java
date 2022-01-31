@@ -96,6 +96,8 @@ public class MainGUI extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
         jMenuBar2 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
 
         btnReadOnly.setText("No Dates Added Test");
@@ -343,8 +345,22 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        jMenu1.setText("Edit");
+
+        jMenuItem1.setText("Edit Specialists");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem1);
+
+        jMenuBar2.add(jMenu1);
+
         jMenu3.setText("Resource Review Version 2.0.3");
         jMenu3.setEnabled(false);
+        jMenu3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jMenu3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jMenuBar2.add(jMenu3);
 
         setJMenuBar(jMenuBar2);
@@ -430,7 +446,7 @@ public class MainGUI extends javax.swing.JFrame {
     private void txtMonthCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_txtMonthCaretUpdate
         try {
             int month = Integer.parseInt(txtMonth.getText());
-            if (month < -1 || month > 13 || month == 0) {
+            if (month <= 0) {
                 txtMonth.setBackground(Color.PINK);
             } else {
                 txtMonth.setBackground(Color.WHITE);
@@ -485,6 +501,10 @@ public class MainGUI extends javax.swing.JFrame {
             new LoginGUI().setVisible(true);
         }
     }//GEN-LAST:event_btnTestModeMouseClicked
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -628,8 +648,10 @@ public class MainGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar2;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

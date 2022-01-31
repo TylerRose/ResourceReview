@@ -42,6 +42,22 @@ public class SendEmail {
     public static LoginGUI retryGUI;
     public static Session session = null;
 
+    public static void resetSendEmail() {
+        testMode = true;
+        BufferedWriter out = null;
+        index = 0;
+        error = 0;
+        p = null;
+        pathCred = null;
+        pathEmail = null;
+        username = "";
+        password = "";
+        sentCount = 0;
+        retryLogin = true;
+        retryGUI = null;
+        session = null;
+    }
+
     /**
      * Add an email to the list of emails to run
      *
@@ -154,8 +170,8 @@ public class SendEmail {
             Message message = new MimeMessage(session);
 
             //set From email field
-            message.setFrom(new InternetAddress("resourcereviews@homage.org"));
-            //message.setFrom(new InternetAddress(username));
+            //message.setFrom(new InternetAddress("resourcereviews@homage.org"));
+            message.setFrom(new InternetAddress(username));
 
             //set To email field
             if (testMode) {

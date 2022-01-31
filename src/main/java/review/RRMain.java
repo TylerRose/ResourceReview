@@ -36,6 +36,21 @@ public class RRMain {
     public static ArrayList<String> doneIDs = new ArrayList<>();
     public static int sheetNo;
 
+    public static void resetRRMain() {
+        mySpreadSheet = Spreadsheet.getInstance();
+        specialistInitials = null;
+        writer = null;
+        errorsOnly = false;
+        year = 0;
+        workbookSetup = null;
+        excelPath = null;
+        powershellScript = null;
+        fileLocation = null;
+        specialistList = null;
+        doneIDs = new ArrayList<>();
+        sheetNo = 0;
+    }
+
     public static boolean ReviewSteps(boolean errorsOnly) {
         //Get input for month and year
         //int sheetNo = Integer.parseInt(MainGUI.getInstance().getTxtMonth());//getInput();
@@ -119,7 +134,6 @@ public class RRMain {
                 RRMain.updateFormulas(sheet);
             } catch (RuntimeException ex) {
                 Source.printError("A runtime exception occured:\n" + ex.getMessage() + "\nPlease contact support with this message and the following information:");
-                ex.printStackTrace();
                 return false;
             }
             try {
@@ -138,8 +152,8 @@ public class RRMain {
                     + " |____/ u \\_)-\\___/  |_| \\_|   |_____|  \n"
                     + "  |||_         \\\\    ||   \\\\,-.<<   >>  \n"
                     + " (__)_)       (__)   (_\")  (_/(__) (__) \n"
-                    + "                                        \n"
                     + "                                        \n");
+            MainGUI.print("The script has finished and is ready to be run again.\n");
         } else {
             MainGUI.println("The sheet to run wasn't identified or another error has occured. Please read the information above.");
             MainGUI.println("Nothing has been run.");

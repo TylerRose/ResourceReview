@@ -59,7 +59,7 @@ public class Spreadsheet {
      */
     private void isSetUp() {
         if (!isSetUp) {
-            throw new RuntimeException("Run the setup method first");
+            throw new RuntimeException("Workbook Setup Error: Run the setup method first");
         }
     }
 

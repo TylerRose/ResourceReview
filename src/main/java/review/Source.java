@@ -84,19 +84,13 @@ public class Source {
     public static void resetVars() {
         LoginGUI.retrying = false;
 
-        RRMain.doneIDs = new ArrayList<>();
-
-        SendEmail.index = 0;
-        SendEmail.error = 0;
-        SendEmail.username = "";
-        SendEmail.sentCount = 0;
-        SendEmail.session = null;
-        SendEmail.setPassword("");
-
         //reset instances
         EmailManager.resetInstance();
         ErrorTracker.resetInstance();
         Spreadsheet.resetInstance();
+        
+        SendEmail.resetSendEmail();
+        RRMain.resetRRMain();
     }
 
     /**
