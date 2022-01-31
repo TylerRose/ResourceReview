@@ -78,6 +78,8 @@ public class MainGUI extends javax.swing.JFrame {
     private void initComponents() {
 
         btnReadOnly = new javax.swing.JButton();
+        jMenu1 = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
         jPanel4 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
@@ -96,8 +98,6 @@ public class MainGUI extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
         jMenuBar2 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
 
         btnReadOnly.setText("No Dates Added Test");
@@ -108,6 +108,16 @@ public class MainGUI extends javax.swing.JFrame {
                 btnReadOnlyMouseClicked(evt);
             }
         });
+
+        jMenu1.setText("Edit");
+
+        jMenuItem1.setText("Edit Specialists");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Resource Review Automation");
@@ -345,19 +355,7 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jMenu1.setText("Edit");
-
-        jMenuItem1.setText("Edit Specialists");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jMenuItem1);
-
-        jMenuBar2.add(jMenu1);
-
-        jMenu3.setText("Resource Review Version 2.0.3");
+        jMenu3.setText("Resource Review Version 2.0.4");
         jMenu3.setEnabled(false);
         jMenu3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jMenu3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
