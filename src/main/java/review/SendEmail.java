@@ -2,6 +2,7 @@ package review;
 
 import GUI.LoginGUI;
 import GUI.MainGUI;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -41,6 +42,7 @@ public class SendEmail {
     public static boolean retryLogin = true;
     public static LoginGUI retryGUI;
     public static Session session = null;
+    public static boolean tylertest = false;
 
     public static void resetSendEmail() {
         testMode = true;
@@ -62,7 +64,7 @@ public class SendEmail {
      * Add an email to the list of emails to run
      *
      * @param scriptPath the path that the powershell scripts are in
-     * @param email the email object to add
+     * @param email      the email object to add
      * @throws IOException Couldn't run the powershell process
      */
     public static void addEmail(File scriptPath, Email email) throws IOException {
@@ -88,7 +90,8 @@ public class SendEmail {
         if (testMode) {
             //test mode only sends to resourcereviews@homage.org
             to = "resourcereviews@homage.org";
-            //to = "trose@homage.org";
+            if (tylertest)
+                to = "trose@homage.org";
             subject = "Review Test Email - " + subject;
         }
         writeFile(scriptPath + "\\Files\\", "to" + index, to);
@@ -135,6 +138,7 @@ public class SendEmail {
         MainGUI.println("Sending!");
     }
      */
+
     /**
      * Write text to a new file with a given name and close the file
      *
@@ -174,18 +178,23 @@ public class SendEmail {
             message.setFrom(new InternetAddress(username));
 
             //set To email field
-            if (testMode) {
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("resourcereviews@homage.org"));
-
-                //set email subject field
+            if (tylertest) {
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("TylerRose-@outlook.com"));
                 message.setSubject("Review Test Email - " + email.getSubject());
             } else {
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email.getTo()));
-                message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse("resourcereviews@homage.org"));
-                //set email subject field
-                message.setSubject(email.getSubject());
+                if (testMode) {
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("resourcereviews@homage.org"));
+
+                    //set email subject field
+                    message.setSubject("Review Test Email - " + email.getSubject());
+                } else {
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email.getTo()));
+                    message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse("resourcereviews@homage.org"));
+                    //set email subject field
+                    message.setSubject(email.getSubject());
+                }
             }
-            //message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("TylerRose-@outlook.com"));
+
 
             //set the content of the email message
             message.setContent(email.getBody(), "text/html");
@@ -222,7 +231,7 @@ public class SendEmail {
             public void run() {
                 SendEmail.retryGUI = new LoginGUI();
                 retryGUI.setVisible(true);
-                while (retryGUI.isVisible());
+                while (retryGUI.isVisible()) ;
             }
         };
         window.start();
@@ -243,11 +252,11 @@ public class SendEmail {
         //create the Session object
         session = Session.getInstance(props,
                 new javax.mail.Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
-            }
-        });
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
     }
 
     public static void setPassword(String pass) {

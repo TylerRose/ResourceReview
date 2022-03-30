@@ -127,7 +127,7 @@ public class Spreadsheet {
         int i = 0;
         for (Row row : sheet) {
             Cell cell = row.getCell(col);
-            if (cell != null && getCellValue(cell).equals(email)) {
+            if (cell != null && getCellValue(cell).toLowerCase().equals(email.toLowerCase())) {
                 rows.add(sheet.getRow(i));
             }
             i++;
@@ -154,6 +154,11 @@ public class Spreadsheet {
         ArrayList<Row> rows = new ArrayList<>();
         int i = 0;
         for (Row row : sheet) {
+            Spreadsheet mySpreadSheet = Spreadsheet.getInstance();
+            String listingID = mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(row, "Listing ID"));
+            if (listingID.equals("")) {
+                continue;
+            }
             Cell cell = row.getCell(col);
             if (cell != null) {
                 rows.add(sheet.getRow(i));

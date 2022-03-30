@@ -6,7 +6,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 /**
  * Main file of RR that handles the program flow, major steps, and error
@@ -125,18 +128,19 @@ public class Source {
 
         //Create the path if it doesn't exist
         new File(RRMain.excelPath).mkdirs();
-        //Get month and specialist details
-        //MainGUI.println("Please enter the Month number: ");
-        //sheetNo = in.nextInt() - 1;
-        RRMain.sheetNo = Integer.parseInt(gui.getTxtMonth()) - 1;
-//        MainGUI.print("Please select the specialist:");
-//        int i = 1;
-//        for (String s : specialistList) {
-//            MainGUI.print(" (" + i++ + ") " + s);
-//        }
-//        MainGUI.println("");
-//        int selected = in.nextInt();
-        //String name = specialistList.get(selected - 1);
+        String sheets = gui.getTxtMonth();
+        List<String> sheetNums = Arrays.stream(sheets.replace(" ", "").split(",")).map(String::trim).collect(Collectors.toList());
+        for (String sheetNum : sheetNums) {
+            if (sheetNum.contains("-")) {
+                int start = Integer.parseInt(sheetNum.substring(0, sheetNum.indexOf("-"))) - 1;
+                int end = Integer.parseInt(sheetNum.substring(sheetNum.indexOf("-") + 1)) - 1;
+                for (int j = start; j <= end; j++) {
+                    RRMain.sheetList.add(j);
+                }
+            } else {
+                RRMain.sheetList.add(Integer.parseInt(sheetNum) - 1);
+            }
+        }
         String name = gui.getSpnSpecialist();
         RRMain.specialistInitials = name.substring(0, 1).concat(name.substring(name.indexOf(" ") + 1, name.indexOf(" ") + 2));
     }

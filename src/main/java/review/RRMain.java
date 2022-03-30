@@ -1,12 +1,14 @@
 package review;
 
 import GUI.MainGUI;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -16,8 +18,8 @@ import org.apache.poi.ss.usermodel.Sheet;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 /**
- *
  * @author tyler
  */
 public class RRMain {
@@ -34,7 +36,7 @@ public class RRMain {
     public static String fileLocation;
     public static ArrayList<String> specialistList;
     public static ArrayList<String> doneIDs = new ArrayList<>();
-    public static int sheetNo;
+    public static ArrayList<Integer> sheetList = new ArrayList<>();
 
     public static void resetRRMain() {
         mySpreadSheet = Spreadsheet.getInstance();
@@ -48,7 +50,7 @@ public class RRMain {
         fileLocation = null;
         specialistList = null;
         doneIDs = new ArrayList<>();
-        sheetNo = 0;
+        sheetList = new ArrayList<>();
     }
 
     public static boolean ReviewSteps(boolean errorsOnly) {
@@ -59,8 +61,8 @@ public class RRMain {
          * Remove Powershell functions
          *
          */
+        String[] monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
         /*
-        String[] monthNames = {"January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
         try {
             new File(powershellScript + "\\lastRun.txt").createNewFile();
             File outFile = new File(powershellScript + "\\lastRun.txt");
@@ -75,7 +77,7 @@ public class RRMain {
          */
         //Begin processing the spreadsheet
         MainGUI.print("\nProcessing");
-        Source.delay(0.5);
+        Source.delay(0.1);
         //Define the Spreadsheet and parse location and check it exits
         File docPath = new File(excelPath);
         if (docPath.list().length == 0) {
@@ -84,51 +86,68 @@ public class RRMain {
         }
         //Get the path to the file to parse through it
         fileLocation = excelPath + "\\" + docPath.list()[0];
+        ArrayList<Sheet> sheetsRun = new ArrayList<>();
         try {
-            RRMain.mySpreadSheet.setupSpreadsheet(workbookSetup, sheetNo);
-        } catch (InterruptedException ex) {
-            Source.printError("The worksheet could not be set up.");
-        }
-        RRMain.writer = CellWriter.getInstance();
-        ArrayList<Integer> errorsList = null;
-        Sheet sheet = null;
-        if (errorsOnly) {
-            try {
-                //Begin re-running only errored emails by populating the errors list
-                errorsList = RunErrorsOnly();
-            } catch (IOException ex) {
-                Source.printError("The error list wasn't able to be read or couldn't be found! Were there any errors to re-run?");
-                return false;
+            for (int sheetListIndex = 0; sheetListIndex < sheetList.size(); sheetListIndex++) {
+                System.out.println("Running month: " + monthNames[sheetList.get(sheetListIndex)]);
+                try {
+                    RRMain.mySpreadSheet.setupSpreadsheet(workbookSetup, sheetList.get(sheetListIndex));
+                } catch (InterruptedException ex) {
+                    Source.printError("The worksheet could not be set up.");
+                    throw new MultiRunFailException("Month Number " + sheetList.get(sheetListIndex) + 1 + " failed to run.");
+                }
+                RRMain.writer = CellWriter.getInstance();
+                ArrayList<Integer> errorsList = null;
+                Sheet sheet = null;
+                if (errorsOnly) {
+                    try {
+                        //Begin re-running only errored emails by populating the errors list
+                        errorsList = RunErrorsOnly();
+                    } catch (IOException ex) {
+                        Source.printError("The error list wasn't able to be read or couldn't be found! Were there any errors to re-run?");
+                        return false;
+                    }
+                }
+                try {
+                    //Beginning running the review. If errors is no longer null, it will run the errors only.
+                    sheetsRun.add(RRMain.RunResourceReview(sheetList.get(sheetListIndex), errorsList));
+                } catch (IllegalArgumentException ex) {
+                    //Tabs out of order or null cell passed
+                    Source.printError(ex.getMessage());
+                    throw new MultiRunFailException("Month Number " + sheetList.get(sheetListIndex) + 1 + " failed to run.");
+                } catch (FileNotFoundException ex) {
+                    Source.printError("The spreadsheet could not be set up, the file was inaccessable.");
+                    throw new MultiRunFailException("Month Number " + sheetList.get(sheetListIndex) + 1 + " failed to run.");
+                } catch (RuntimeException ex) {
+                    Source.printError(ex.getMessage());
+                    throw new MultiRunFailException("Month Number " + sheetList.get(sheetListIndex) + 1 + " failed to run.");
+                }
+
             }
-        }
-        try {
-            //Beginning running the review. If errors is no longer null, it will run the errors only.
-            sheet = RRMain.RunResourceReview(sheetNo, errorsList);
-        } catch (IllegalArgumentException ex) {
-            //Tabs out of order or null cell passed
-            Source.printError(ex.getMessage());
-        } catch (FileNotFoundException ex) {
-            Source.printError("The spreadsheet could not be set up, the file was inaccessable.");
-        } catch (RuntimeException ex) {
-            Source.printError(ex.getMessage());
+        } catch (MultiRunFailException ex) {
+            Source.printError(ex.getMessage() + "\nOne or more of the sheets failed to run. Please check above spreadsheet for errors.\nNo reviews have ben run. Please fix the above errors and try again.");
+            return false;
         }
         MainGUI.println("Finished processing");
-        if (sheet != null) {
+
+        //Send all emails
+        MainGUI.print("\nGenerating emails");
+        Source.delay(0.1);
+        try {
+            sendEmails();
+        } catch (IOException ex) {
+            Source.printError("Unable to send emails. A file permission error has occurred. Please check permissions and try re-running the application.");
+        } catch (RuntimeException ex) {
+            Source.printError("Unable to send emails: \n" + ex.getMessage() + "\nPlease try re-running the application.");
+            return false;
+        }
+        //Update the spreadsheet
+        for (Sheet sheet : sheetsRun) {
             //Generate emails for non-errored entries to be sent by java
-            MainGUI.print("\nGenerating emails");
-            Source.delay(0.5);
-            try {
-                sendEmails();
-            } catch (IOException ex) {
-                Source.printError("Unable to send emails. A file permission error has occured. Please check permissions and try re-running the application.");
-            } catch (RuntimeException ex) {
-                Source.printError("Unable to send emails: \n" + ex.getMessage() + "\nPlease try re-running the application.");
-                return false;
-            }
             ErrorTracker errors = reportErrors();
             //write the dates into the contact column
             MainGUI.print("\nUpdating dates for successful entries");
-            Source.delay(0.5);
+            Source.delay(0.1);
             try {
                 RRMain.updateDates(sheet, errors);
                 RRMain.updateFormulas(sheet);
@@ -136,6 +155,10 @@ public class RRMain {
                 Source.printError("A runtime exception occured:\n" + ex.getMessage() + "\nPlease contact support with this message and the following information:");
                 return false;
             }
+        }
+
+
+        if (sheetsRun.size() >= 1) {
             try {
                 RRMain.writer.closeWriter();
                 MainGUI.println("Finished updating dates.");
@@ -155,7 +178,7 @@ public class RRMain {
                     + "                                        \n");
             MainGUI.print("The script has finished and is ready to be run again.\n");
         } else {
-            MainGUI.println("The sheet to run wasn't identified or another error has occured. Please read the information above.");
+            MainGUI.println("The sheet to run wasn't identified or another error has occurred. Please read the information above.");
             MainGUI.println("Nothing has been run.");
             return false;
         }
@@ -184,9 +207,9 @@ public class RRMain {
      * @param sheetNo the sheet number to run
      * @return the sheet that was run
      * @throws IllegalArgumentException Invalid tab position of the given tab to
-     * run
-     * @throws FileNotFoundException ParseEmailFormat couldn't open the file at
-     * the given path
+     *                                  run
+     * @throws FileNotFoundException    ParseEmailFormat couldn't open the file at
+     *                                  the given path
      */
     public static Sheet RunResourceReview(int sheetNo, ArrayList<Integer> errors) throws FileNotFoundException, RuntimeException {
         ParseEmailFormat parse = new ParseEmailFormat(mySpreadSheet.getSheet(sheetNo), resourceReviewsPath);
@@ -236,6 +259,7 @@ public class RRMain {
                     }
                 }
             } catch (IOException | RuntimeException e) {
+                System.out.println("Error in RunResourceReview: " + e.getMessage());
             }
             curRow++;
             //Catch a runaway loop that looks through too many lines
@@ -312,10 +336,10 @@ public class RRMain {
      * tab number provided by the worksheet and prevents the wrong month from
      * being run accidentally. Throws an exception if the tabs are out of order.
      *
-     * @param sheet the sheet that will be run
+     * @param sheet   the sheet that will be run
      * @param sheetNo the month number requested
      * @throws IllegalArgumentException the provided requested sheet number does
-     * not match the name of the tab on the sheet.
+     *                                  not match the name of the tab on the sheet.
      */
     public static void CheckTabOrder(Sheet sheet, int sheetNo) throws IllegalArgumentException {
         //clean up the tab name and set the expected name string
@@ -337,7 +361,7 @@ public class RRMain {
     /**
      * Update the Dates Contacted field of any lines that ran through the script
      *
-     * @param sheet the sheet that was run
+     * @param sheet  the sheet that was run
      * @param errors the error tracker instance holding which entries had errors
      * @throws RuntimeException
      */
@@ -349,13 +373,20 @@ public class RRMain {
         int curRow = 0;
         //go through all rows with Listing IDs
         for (Row r : mySpreadSheet.getRowsByColumnName(sheet, "Listing ID")) {
+            //if the listing ID is empty, skip it
+            String listingID = mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(r, "Listing ID"));
+            if (listingID.equals("")) {
+                continue;
+            }
+
             try {
                 currCell = mySpreadSheet.getCellByRowAndTitle(r, "Dates Contacted");
                 currCellText = mySpreadSheet.getCellValue(currCell);
                 if (!currCellText.equals("Dates Contacted")) {
-                    //if not marked as an error and not completed
+                    //if not marked as an error and not completed and the email address cell isn't empty
                     if (!errors.checkForError(mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(r, "Listing ID")))
-                            && mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(r, "Complete")).equals("")) {
+                            && mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(r, "Complete")).equals("")
+                            && !mySpreadSheet.getCellValue(mySpreadSheet.getCellByRowAndTitle(r, "Administrative Contact Email")).equals("")) {
                         try {
                             if (mySpreadSheet.getCellValue(currCell).length() > 3) {
                                 writer.appendCellText(currCell, ", E: " + Spreadsheet.getDateString());
@@ -364,11 +395,7 @@ public class RRMain {
                             }
                         } catch (RuntimeException ex) {
                             //Null cell - create new cell
-                            if (mySpreadSheet.getCellValue(currCell).length() > 3) {
-                                writer.appendCellText(r.createCell(mySpreadSheet.getCellByRowAndTitle(r, "Dates Contacted").getColumnIndex()), ", E: " + Spreadsheet.getDateString());
-                            } else {
-                                writer.appendCellText(r.createCell(mySpreadSheet.getCellByRowAndTitle(r, "Dates Contacted").getColumnIndex()), "E: " + Spreadsheet.getDateString());
-                            }
+                            writer.appendCellText(r.createCell(mySpreadSheet.getCellByRowAndTitle(r, "Dates Contacted").getColumnIndex()), "E: " + Spreadsheet.getDateString());
                         }
                     }
                 }
@@ -418,4 +445,12 @@ public class RRMain {
         return errors;
     }
 
+    static class MultiRunFailException extends Exception {
+        public MultiRunFailException(String message) {
+            super(message);
+        }
+    }
 }
+
+
+

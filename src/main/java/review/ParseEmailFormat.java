@@ -133,9 +133,17 @@ public class ParseEmailFormat {
                         String id = spdsht.getCellValue(spdsht.getCellByRowAndTitle(row, "Listing ID"));
                         //Mark as hidden error if the first name was blank
                         if (!skip) {
-                            errors.addError(id.substring(0, id.indexOf(".")), "Empty " + colTitle + " Cell");
+                            if(id.contains(".")) {
+                                errors.addError(id.substring(0, id.indexOf(".")), "Empty " + colTitle + " Cell");
+                            } else {
+                                errors.addError(id, "Empty " + colTitle + " Cell");
+                            }
                         } else {
-                            errors.addError(id.substring(0, id.indexOf(".")), "Skipped");
+                            if(id.contains(".")) {
+                                errors.addError(id.substring(0, id.indexOf(".")), "Skipped");
+                            } else {
+                                errors.addError(id, "Skipped");
+                            }
                         }
                     }
                     //Catch null pointer exception from unknown column name

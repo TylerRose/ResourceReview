@@ -1,7 +1,9 @@
 package review;
 
 import GUI.MainGUI;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * EmailManager handles the emails and stores them in a list. Ensures that added
@@ -29,13 +31,12 @@ public class EmailManager {
      */
     public static EmailManager getInstance() {
         if (emailList == null) {
-            return new EmailManager();
-        } else {
-            return manager;
+            manager = new EmailManager();
         }
+        return manager;
     }
-    
-    public static void resetInstance(){
+
+    public static void resetInstance() {
         manager = new EmailManager();
     }
 
@@ -57,9 +58,9 @@ public class EmailManager {
     /**
      * Add an email by To, Subject, and Body fields to the list
      *
-     * @param to the destination email
+     * @param to      the destination email
      * @param subject the email subject
-     * @param body the email body
+     * @param body    the email body
      */
     public void addEmail(String to, String subject, String body) {
         Email newEmail = new Email(to, subject, body);
@@ -84,10 +85,33 @@ public class EmailManager {
             }
         }
         if (SendEmail.retryLogin) {
-            //SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
-            SendEmail.sendAnEmail(new Email("resourcereviews@homage.org",
-                    (SendEmail.testMode ? "**Test**" : "**Production**") + "Resource Review Emails Finished Sending!",
-                    (SendEmail.testMode ? "**Test**" : "**Production**") +"\nYou have finished sending " + SendEmail.sentCount + " emails for " + (RRMain.sheetNo + 1) + "/" + (RRMain.year == -1 ? "TestYear" : RRMain.year) + "."));
+            StringBuilder sheetsRun = new StringBuilder();
+            for(Object i : RRMain.sheetList)
+            {
+                try {
+                    sheetsRun.append(i.getClass().getMethod("getSheetName").invoke(i).toString()).append(", ");
+                } catch (Exception e){
+                    sheetsRun.append("");
+                }
+            }
+            StringBuilder monthsRun = new StringBuilder("");
+            for (int i = 0; i < RRMain.sheetList.size(); i++) {
+                monthsRun.append(RRMain.sheetList.get(i)+1);
+                if(i < RRMain.sheetList.size()-1){
+                    monthsRun.append(", ");
+                }
+            }
+
+            if (SendEmail.tylertest) {
+                SendEmail.sendAnEmail(new Email("tylerrose-@outlook.com",
+                        (SendEmail.testMode ? "**Test**" : "**Production**") + "Resource Review Emails Finished Sending!",
+                        (SendEmail.testMode ? "**Test**" : "**Production**") + "\nYou have finished sending " + SendEmail.sentCount + " emails for " + monthsRun.toString() + " /" + (RRMain.year == -1 ? "TestYear" : RRMain.year) + "."));
+            } else {
+                SendEmail.sendAnEmail(new Email("resourcereviews@homage.org",
+                        (SendEmail.testMode ? "**Test**" : "**Production**") + "Resource Review Emails Finished Sending!",
+                        (SendEmail.testMode ? "**Test**" : "**Production**") + "\nYou have finished sending " + SendEmail.sentCount + " emails for " + monthsRun.toString() + " /" + (RRMain.year == -1 ? "TestYear" : RRMain.year) + "."));
+            }
+
         }
     }
 }

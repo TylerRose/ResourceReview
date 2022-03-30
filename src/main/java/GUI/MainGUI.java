@@ -355,8 +355,7 @@ public class MainGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jMenu3.setText("Resource Review Version 2.0.4");
-        jMenu3.setEnabled(false);
+        jMenu3.setText("Resource Review Version 2.0.5");
         jMenu3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jMenu3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jMenuBar2.add(jMenu3);
@@ -437,21 +436,21 @@ public class MainGUI extends javax.swing.JFrame {
         txtMonth.setForeground(Color.BLACK);
         if (txtMonth.getText().equals("Month Number")) {
             txtMonth.setText("");
-            txtMonth.setBackground(Color.PINK);
+            //txtMonth.setBackground(Color.PINK);
         }
     }//GEN-LAST:event_txtMonthFocusGained
 
     private void txtMonthCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_txtMonthCaretUpdate
-        try {
-            int month = Integer.parseInt(txtMonth.getText());
-            if (month <= 0) {
-                txtMonth.setBackground(Color.PINK);
-            } else {
-                txtMonth.setBackground(Color.WHITE);
-            }
-        } catch (NumberFormatException nfe) {
-            txtMonth.setBackground(Color.PINK);
-        }
+//        try {
+//            int month = Integer.parseInt(txtMonth.getText());
+//            if (month <= 0) {
+//                txtMonth.setBackground(Color.PINK);
+//            } else {
+//                txtMonth.setBackground(Color.WHITE);
+//            }
+//        } catch (NumberFormatException nfe) {
+//            txtMonth.setBackground(Color.PINK);
+//        }
     }//GEN-LAST:event_txtMonthCaretUpdate
 
     private void spnSpecialistActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spnSpecialistActionPerformed
