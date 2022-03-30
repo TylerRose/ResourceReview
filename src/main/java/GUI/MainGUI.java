@@ -356,6 +356,7 @@ public class MainGUI extends javax.swing.JFrame {
         );
 
         jMenu3.setText("Resource Review Version 2.0.5");
+        jMenu3.setEnabled(false);
         jMenu3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jMenu3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jMenuBar2.add(jMenu3);
